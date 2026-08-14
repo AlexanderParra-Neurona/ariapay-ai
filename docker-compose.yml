@@ -7,7 +7,7 @@ services:
       - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
       retries: 5
 
@@ -19,7 +19,7 @@ services:
       - ollama_data:/root/.ollama
     healthcheck:
       test: ["CMD", "ollama", "list"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
       retries: 5
 
@@ -27,7 +27,7 @@ services:
     image: ollama/ollama:latest
     environment:
       OLLAMA_HOST: http://ollama:11434
-    entrypoint: ["ollama", "pull", "nomic-embed-text"]
+    entrypoint: ["sh", "-c", "ollama list | grep -q nomic-embed-text || ollama pull nomic-embed-text"]
     depends_on:
       ollama:
         condition: service_healthy
@@ -43,7 +43,7 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
       retries: 5
       start_period: 10s
@@ -60,7 +60,7 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8081"]
-      interval: 10s
+      interval: 30s
       timeout: 5s
       retries: 5
 
