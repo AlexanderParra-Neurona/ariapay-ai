@@ -6,10 +6,9 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.141.1",
     "gradio>=6.24.0",
-    "httpx>=0.28.1",
-    "langchain-core>=1.5.4",
-    "langgraph>=1.2.11",
+    "pydantic-settings>=2.15.0",
     "python-dotenv>=1.2.2",
     "redis>=8.1.0",
+    "requests>=2.34.2",
     "uvicorn[standard]>=0.52.2",
 ]
