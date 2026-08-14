@@ -5,8 +5,8 @@ from pathlib import Path
 
 sys.path.insert(0, ".")
 
-from app.embeddings import embed
-from app.redis_client import FAQ_PREFIX, get_redis, set_faq_entry
+from app.services.ollama_service import embed
+from app.services.redis_service import FAQ_PREFIX, get_redis, set_faq_entry
 
 SEED_FILE = Path("data/seed/faq_docs.json")
 

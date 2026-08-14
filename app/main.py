@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from app.embeddings import embed
-from app.redis_client import find_similar_faq
+from app.services.ollama_service import embed
+from app.services.redis_service import find_similar_faq
 
 app = FastAPI(title="ariabot")
 
