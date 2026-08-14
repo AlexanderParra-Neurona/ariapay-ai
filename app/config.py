@@ -9,5 +9,10 @@ class Settings(BaseSettings):
 
     API_URL: str = "http://localhost:8000"
 
+    OLLAMA_URL: str = "http://localhost:11434"
+    EMBED_MODEL: str = "nomic-embed-text"
+    EMBED_DIM: int = 768
+    FAQ_MATCH_THRESHOLD: float = 0.85
+
 
 settings = Settings()

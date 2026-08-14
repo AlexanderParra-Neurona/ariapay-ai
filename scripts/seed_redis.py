@@ -5,6 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, ".")
 
+from app.embeddings import embed
 from app.redis_client import FAQ_PREFIX, get_redis, set_faq_entry
 
 SEED_FILE = Path("data/seed/faq_docs.json")
@@ -17,7 +18,8 @@ def load_seed_docs() -> list[dict]:
 async def seed() -> None:
     docs = load_seed_docs()
     for doc in docs:
-        await set_faq_entry(doc["question"], doc["answer"], category=doc["category"])
+        vector = await embed(doc["question"])
+        await set_faq_entry(doc["question"], doc["answer"], vector, category=doc["category"])
     print(f"Seeded {len(docs)} entries across {len({d['category'] for d in docs})} categories.")
 
 

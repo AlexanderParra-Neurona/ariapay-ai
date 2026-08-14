@@ -1,7 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from app.redis_client import find_faq
+from app.embeddings import embed
+from app.redis_client import find_similar_faq
 
 app = FastAPI(title="ariabot")
 
@@ -12,7 +13,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     answer: str
-    found: bool
+    short_circuit: bool
 
 
 @app.get("/health")
@@ -22,7 +23,8 @@ async def health():
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
-    match = await find_faq(req.question)
-    if match is None:
-        return ChatResponse(answer="Sorry, I don't have an answer for that yet.", found=False)
-    return ChatResponse(answer=match["answer"], found=True)
+    vector = await embed(req.question)
+    match = await find_similar_faq(vector)
+    if match is not None:
+        return ChatResponse(answer=match["answer"], short_circuit=True)
+    return ChatResponse(answer="Sorry, I don't have an answer for that yet.", short_circuit=False)
