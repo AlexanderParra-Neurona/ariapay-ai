@@ -1,0 +1,72 @@
+[
+  {
+    "category": "public_faq",
+    "question": "How do I reset my password?",
+    "answer": "Go to Settings > Security > Reset Password and follow the emailed link."
+  },
+  {
+    "category": "public_faq",
+    "question": "What are your support hours?",
+    "answer": "Support is available Monday-Friday, 9am-6pm local time."
+  },
+  {
+    "category": "public_faq",
+    "question": "How long does a transfer take?",
+    "answer": "Domestic transfers typically settle within 1 business day."
+  },
+  {
+    "category": "product_docs",
+    "question": "What is the difference between a savings and checking account?",
+    "answer": "Checking accounts are for frequent transactions; savings accounts earn interest and limit withdrawals."
+  },
+  {
+    "category": "product_docs",
+    "question": "How do I link an external bank account?",
+    "answer": "Go to Accounts > Link Account, then verify via micro-deposits or instant login."
+  },
+  {
+    "category": "product_docs",
+    "question": "What card types do you support?",
+    "answer": "We support virtual debit cards and physical debit cards issued on request."
+  },
+  {
+    "category": "financial_education",
+    "question": "What is compound interest?",
+    "answer": "Interest calculated on both the initial principal and accumulated interest from prior periods."
+  },
+  {
+    "category": "financial_education",
+    "question": "What is a credit score?",
+    "answer": "A numeric representation of creditworthiness based on payment history, utilization, and account age."
+  },
+  {
+    "category": "financial_education",
+    "question": "What is an emergency fund?",
+    "answer": "Savings set aside to cover 3-6 months of essential expenses in case of income loss."
+  },
+  {
+    "category": "internal_docs",
+    "question": "What is the on-call escalation path for payment failures?",
+    "answer": "Page #payments-oncall in PagerDuty; escalate to platform lead after 15 minutes unacknowledged."
+  },
+  {
+    "category": "internal_docs",
+    "question": "Where is the incident postmortem template?",
+    "answer": "Internal wiki > Engineering > Postmortems > Template."
+  },
+  {
+    "category": "regulatory",
+    "question": "What is KYC?",
+    "answer": "Know Your Customer: identity verification required before enabling full account functionality."
+  },
+  {
+    "category": "regulatory",
+    "question": "What is AML?",
+    "answer": "Anti-Money Laundering: regulations and controls to detect and prevent illicit fund movement."
+  },
+  {
+    "category": "regulatory",
+    "question": "Are deposits insured?",
+    "answer": "Eligible deposits are insured up to the applicable regulatory limit per depositor, per institution."
+  }
+]
