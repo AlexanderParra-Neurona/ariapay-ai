@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     FAQ_CACHE_TTL_SECONDS: int = 3600
 
     API_URL: str = "http://localhost:8000"
+    ARIAPAY_API_URL: str = "https://api.ariapay.id"
 
     OLLAMA_URL: str = "http://localhost:11434"
     EMBED_MODEL: str = "nomic-embed-text"
