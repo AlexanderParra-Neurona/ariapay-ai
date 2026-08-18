@@ -1,7 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from app.services.ariapay_service import AriapayAPIError, AriapayAuthError, get_me
+from app.services.ariapay_service import AriapayAPIError, AriapayAuthError, get_me, login, verify_passcode
 from app.services.ollama_service import embed
 from app.services.redis_service import find_similar_faq
 
@@ -28,6 +28,18 @@ class ChatResponse(BaseModel):
     short_circuit: bool
 
 
+class LoginRequest(BaseModel):
+    phone_number: str
+    country_code: str
+    password: str
+    passcode: str
+
+
+class LoginResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+
+
 def _is_user_data_question(question: str) -> bool:
     lowered = question.lower()
     return any(keyword in lowered for keyword in USER_DATA_KEYWORDS)
@@ -50,6 +62,18 @@ def _format_me_answer(user: dict) -> str:
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.post("/auth/login", response_model=LoginResponse)
+async def auth_login(req: LoginRequest):
+    try:
+        passcode_token = await login(req.phone_number, req.country_code, req.password)
+        token = await verify_passcode(passcode_token, req.passcode)
+    except AriapayAuthError as e:
+        raise HTTPException(status_code=401, detail=str(e))
+    except AriapayAPIError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+    return LoginResponse(access_token=token["access_token"], refresh_token=token["refresh_token"])
 
 
 @app.post("/chat", response_model=ChatResponse)
