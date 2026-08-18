@@ -1,4 +1,4 @@
-.PHONY: up down clean build logs dev redis ui seed seed-clear scrape all
+.PHONY: up down clean build logs dev redis ui seed seed-clear scrape faq all
 
 up:
 	docker compose up --build
@@ -35,3 +35,6 @@ seed-clear:
 
 scrape:
 	uv run python scripts/scrape_pages.py
+
+faq:
+	uv run python scripts/generate_faq.py
