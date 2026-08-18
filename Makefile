@@ -1,4 +1,4 @@
-.PHONY: up down clean build logs dev redis ui seed seed-clear all
+.PHONY: up down clean build logs dev redis ui seed seed-clear scrape all
 
 up:
 	docker compose up --build
@@ -32,3 +32,6 @@ seed:
 
 seed-clear:
 	uv run python scripts/seed_redis.py --clear
+
+scrape:
+	uv run python scripts/scrape_pages.py
