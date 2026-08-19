@@ -15,5 +15,8 @@ class Settings(BaseSettings):
     EMBED_DIM: int = 768
     FAQ_MATCH_THRESHOLD: float = 0.85
 
+    LOG_DIR: str = "logs"
+    LOG_LEVEL: str = "INFO"
+
 
 settings = Settings()

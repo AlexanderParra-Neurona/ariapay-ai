@@ -1,9 +1,15 @@
+import logging
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+from app.logging_config import setup_logging
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError, get_me, login, verify_passcode
 from app.services.ollama_service import embed
 from app.services.redis_service import find_similar_faq
+
+setup_logging()
+logger = logging.getLogger("ariabot.api")
 
 app = FastAPI(title="ariabot")
 
@@ -66,31 +72,42 @@ async def health():
 
 @app.post("/auth/login", response_model=LoginResponse)
 async def auth_login(req: LoginRequest):
+    logger.info("call=/auth/login phone=%s%s", req.country_code, req.phone_number)
     try:
         passcode_token = await login(req.phone_number, req.country_code, req.password)
         token = await verify_passcode(passcode_token, req.passcode)
     except AriapayAuthError as e:
+        logger.warning("call=/auth/login result=auth_error detail=%s", e)
         raise HTTPException(status_code=401, detail=str(e))
     except AriapayAPIError as e:
+        logger.error("call=/auth/login result=api_error detail=%s", e)
         raise HTTPException(status_code=502, detail=str(e))
+    logger.info("call=/auth/login result=success")
     return LoginResponse(access_token=token["access_token"], refresh_token=token["refresh_token"])
 
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
+    logger.info("call=/chat question=%r authenticated=%s", req.question, bool(req.access_token))
     if _is_user_data_question(req.question):
         if not req.access_token:
+            logger.info("call=/chat result=unauthenticated")
             return ChatResponse(answer="Please sign in to view your account details.", short_circuit=True)
         try:
             user = await get_me(req.access_token)
         except AriapayAuthError:
+            logger.warning("call=/chat result=session_expired")
             return ChatResponse(answer="Your session has expired. Please sign in again.", short_circuit=True)
-        except AriapayAPIError:
+        except AriapayAPIError as e:
+            logger.error("call=/chat result=api_error detail=%s", e)
             return ChatResponse(answer="Sorry, I couldn't fetch your account details right now.", short_circuit=True)
+        logger.info("call=/chat result=user_data_success")
         return ChatResponse(answer=_format_me_answer(user), short_circuit=True)
 
     vector = await embed(req.question)
     match = await find_similar_faq(vector)
     if match is not None:
+        logger.info("call=/chat result=faq_match")
         return ChatResponse(answer=match["answer"], short_circuit=True)
+    logger.info("call=/chat result=no_match")
     return ChatResponse(answer="Sorry, I don't have an answer for that yet.", short_circuit=False)
