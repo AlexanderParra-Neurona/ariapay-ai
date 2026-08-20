@@ -1,0 +1,152 @@
+[
+  {
+    "category": "terms",
+    "question": "What happens if I don't agree with the Terms and Conditions?",
+    "answer": "If you don't agree with these Terms and Conditions, you must stop using the service immediately."
+  },
+  {
+    "category": "terms",
+    "question": "How often will the Terms and Conditions be updated?",
+    "answer": "We may update these terms from time to time. Continued use of the service after changes are published constitutes acceptance of the revised terms."
+  },
+  {
+    "category": "terms",
+    "question": "What services does Ariapay provide?",
+    "answer": "Ariapay provides a mobile payment platform that enables merchants and individuals to accept, send, and manage payments using contactless and tap-to-pay technology. Our services include but are not limited to: Tap-to-pay and NFC payment acceptance, Real-time transaction processing and settlement, Multi-currency support, Transaction reporting and analytics, Payment links and invoicing."
+  },
+  {
+    "category": "terms",
+    "question": "How do I register an account with Ariapay?",
+    "answer": "To use Ariapay you must register an account with accurate, complete, and current information. You are responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account."
+  },
+  {
+    "category": "terms",
+    "question": "What is required to create a business account with Ariapay?",
+    "answer": "Business accounts require valid business registration documents."
+  },
+  {
+    "category": "terms",
+    "question": "How does Ariapay process payments on my behalf?",
+    "answer": "Ariapay processes payments on your behalf in accordance with applicable financial regulations and card scheme rules. By accepting payments through our platform you authorise Ariapay to: Process transactions submitted through the platform, Hold, receive, and disburse funds on your behalf, Deduct applicable fees before settlement, Reverse or refund transactions where required by law or card scheme rules"
+  },
+  {
+    "category": "terms",
+    "question": "What are the fees for using Ariapay?",
+    "answer": "Our current fee schedule is available in the app and on our website. Ariapay charges a flat transaction fee per successful payment. There are no monthly fees, no setup fees, and no hidden charges."
+  },
+  {
+    "category": "terms",
+    "question": "Can I use Ariapay for illegal goods or services?",
+    "answer": "You must not use Ariapay to: Process payments for illegal goods or services, Engage in money laundering, fraud, or financial crime"
+  },
+  {
+    "category": "terms",
+    "question": "What happens if there's a dispute with a customer over a payment?",
+    "answer": "In the event of a chargeback or payment dispute, Ariapay will provide the merchant with notification and an opportunity to respond with supporting evidence within the timeframe set by the relevant card scheme."
+  },
+  {
+    "category": "terms",
+    "question": "How does Ariapay protect my personal data?",
+    "answer": "Ariapay collects and processes personal data in accordance with our Privacy Policy and applicable data protection laws including GDPR where relevant. We use industry-standard encryption and are PCI DSS Level 1 certified."
+  },
+  {
+    "category": "terms",
+    "question": "What is the maximum amount I can claim if there's a problem with my account?",
+    "answer": "Our total liability for any claim arising from or related to this agreement shall not exceed the fees you paid to Ariapay in the three months preceding the claim."
+  },
+  {
+    "category": "terms",
+    "question": "How do I terminate my account with Ariapay?",
+    "answer": "Either party may terminate this agreement at any time. You may close your account from within the app settings."
+  },
+  {
+    "category": "terms",
+    "question": "What law governs these Terms and Conditions?",
+    "answer": "These Terms are governed by and construed in accordance with the laws of the jurisdiction in which Ariapay is incorporated."
+  },
+  {
+    "category": "company",
+    "question": "What problem does Ariapay solve?",
+    "answer": "Ariapay was created to address the issue of slow, opaque, and friction-filled payment tools that are often designed for companies rather than their customers."
+  },
+  {
+    "category": "company",
+    "question": "What is Ariapay's mission?",
+    "answer": "Ariapay aims to make commerce faster for every business, everywhere, from small retailers like corner cafes to large enterprises."
+  },
+  {
+    "category": "company",
+    "question": "How does Ariapay prioritize speed in checkout?",
+    "answer": "Ariapay is obsessed with latency and ensures that each millisecond counts during the checkout process to prevent customers from waiting."
+  },
+  {
+    "category": "company",
+    "question": "What security measures does Ariapay have in place?",
+    "answer": "Ariapay is PCI DSS Level 1 certified, uses end-to-end encryption, and has fraud checking on every transaction for added security."
+  },
+  {
+    "category": "company",
+    "question": "How transparent are Ariapay's fees?",
+    "answer": "Ariapay offers flat pricing with real-time dashboards and zero hidden fees, ensuring that customers know exactly what they pay."
+  },
+  {
+    "category": "company",
+    "question": "What kind of APIs does Ariapay offer for developers?",
+    "answer": "Ariapay provides developer-first APIs with clear documentation and SDKs to help get you started with your first payment in minutes."
+  },
+  {
+    "category": "company",
+    "question": "How long has Ariapay been operating, and how many transactions does it process per month?",
+    "answer": "Ariapay was founded in 2022 by a team of fintech engineers and ex-banking operators. Today, the platform processes over 2 million transactions a month for more than 500 merchants across various industries."
+  },
+  {
+    "category": "privacy",
+    "question": "What information do you collect when I register an account?",
+    "answer": "We collect information such as your name, email address, phone number, and business details."
+  },
+  {
+    "category": "privacy",
+    "question": "Do you collect any sensitive data automatically?",
+    "answer": "Yes, we collect device identifiers, IP address, transaction history, and usage data to operate and secure the platform."
+  },
+  {
+    "category": "privacy",
+    "question": "How do you use the information you collect about me?",
+    "answer": "We use it to create and manage your Ariapay account, process transactions, provide customer support, comply with legal obligations, and improve our products and services."
+  },
+  {
+    "category": "privacy",
+    "question": "Do you sell my personal data to third parties?",
+    "answer": "No, we do not sell your personal data. We only share it with payment networks, banking partners, regulators, and service providers who need it to deliver the service."
+  },
+  {
+    "category": "privacy",
+    "question": "How do you protect sensitive data like card numbers?",
+    "answer": "Card numbers are encrypted at rest and in transit using industry-standard encryption (AES-256), and we are PCI DSS Level 1 certified with regular independent security audits."
+  },
+  {
+    "category": "privacy",
+    "question": "For how long do you retain my personal data?",
+    "answer": "We retain your data for as long as your account is active, and for a period afterward to comply with legal, tax, and regulatory obligations, or to resolve disputes."
+  },
+  {
+    "category": "privacy",
+    "question": "Can I access and correct my personal data?",
+    "answer": "Depending on your jurisdiction, you may have the right to access, correct, export, or delete your personal data. You can update your profile information directly in the app or request account deletion from Settings or our account-deletion portal."
+  },
+  {
+    "category": "privacy",
+    "question": "Do you use cookies to track user activity?",
+    "answer": "Yes, our website uses cookies and similar technologies to keep you signed in, remember your preferences, and understand how our site is used. You can control cookies through your browser settings."
+  },
+  {
+    "category": "privacy",
+    "question": "What about children's privacy?",
+    "answer": "Ariapay is not intended for use by anyone under 18 years of age, and we do not knowingly collect personal data from children."
+  },
+  {
+    "category": "privacy",
+    "question": "How will I be notified if you change this Privacy Policy?",
+    "answer": "We will notify you of material changes through the app or by email before they take effect."
+  }
+]
