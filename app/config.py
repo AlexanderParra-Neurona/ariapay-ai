@@ -11,12 +11,12 @@ class Settings(BaseSettings):
     ARIAPAY_API_URL: str = "changeme"
 
     OLLAMA_URL: str = "changeme"
+    CHAT_MODEL: str = "changeme"
     EMBED_MODEL: str = "changeme"
     EMBED_DIM: int = 0
-    FAQ_MATCH_THRESHOLD: float = 0.85
 
     QDRANT_URL: str = "changeme"
-    QDRANT_COLLECTION: str = "faq"
+    QDRANT_COLLECTION: str = "changeme"
 
     LOG_DIR: str = "logs"
     LOG_LEVEL: str = "INFO"

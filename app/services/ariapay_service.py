@@ -51,7 +51,11 @@ async def login(phone_number: str, country_code: str, password: str) -> str:
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             f"{settings.ARIAPAY_API_URL}{path}",
-            json={"phone_number": phone_number, "country_code": country_code, "password": password},
+            json={
+                "phone_number": phone_number,
+                "country_code": country_code,
+                "password": password,
+            },
             headers=PLATFORM_HEADERS,
             timeout=30,
         )

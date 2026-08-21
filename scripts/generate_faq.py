@@ -9,7 +9,6 @@ sys.path.insert(0, ".")
 
 from app.config import settings
 
-CHAT_MODEL = "llama3.1:latest"
 OUTPUT_FILE = Path("data/seed/faq_docs.json")
 
 SOURCES = {
@@ -56,7 +55,7 @@ def generate_qa(content: str) -> list[dict]:
     resp = httpx.post(
         f"{settings.OLLAMA_URL}/api/generate",
         json={
-            "model": CHAT_MODEL,
+            "model": settings.CHAT_MODEL,
             "prompt": PROMPT.format(content=content),
             "stream": False,
             "format": QA_SCHEMA,

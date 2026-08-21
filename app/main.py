@@ -5,8 +5,6 @@ from pydantic import BaseModel
 
 from app.logging_config import setup_logging
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError, get_me, login, verify_passcode
-from app.services.ollama_service import embed
-from app.services.redis_service import find_similar_faq
 
 setup_logging()
 logger = logging.getLogger("ariabot.api")
@@ -104,10 +102,4 @@ async def chat(req: ChatRequest):
         logger.info("call=/chat result=user_data_success")
         return ChatResponse(answer=_format_me_answer(user), short_circuit=True)
 
-    vector = await embed(req.question)
-    match = await find_similar_faq(vector)
-    if match is not None:
-        logger.info("call=/chat result=faq_match")
-        return ChatResponse(answer=match["answer"], short_circuit=True)
-    logger.info("call=/chat result=no_match")
     return ChatResponse(answer="Sorry, I don't have an answer for that yet.", short_circuit=False)

@@ -49,4 +49,14 @@ if echo "$REVIEW_OUTPUT" | grep -q "^VERDICT: BLOCK"; then
   exit 2
 fi
 
+CHANGELOG_PROMPT="/changelog
+
+Update CHANGELOG.md for the currently staged changes (this commit hasn't been made yet, diff is in \`git diff --cached\`). This is a pre-commit hook running non-interactively: do not ask questions, do not wait for confirmation, just make the best classification and write the file directly. Put the entry under [Unreleased], dated today, per the skill's dated-grouping rule. Do not print the diff or explanations, just update the file.
+
+Staged diff:
+$DIFF"
+
+claude -p "$CHANGELOG_PROMPT" < /dev/null > /dev/null 2>&1 || true
+git add CHANGELOG.md 2>/dev/null || true
+
 exit 0

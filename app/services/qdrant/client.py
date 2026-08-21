@@ -43,7 +43,6 @@ class QdrantClient:
         self.base_url = settings.QDRANT_URL
         self.collection_name = settings.QDRANT_COLLECTION
         self._embed_dim = settings.EMBED_DIM
-        self._match_threshold = settings.FAQ_MATCH_THRESHOLD
 
         try:
             self.client = AsyncQdrantClient(url=self.base_url)
@@ -62,61 +61,49 @@ class QdrantClient:
             await self.client.get_collections()
             return {"status": "healthy", "message": "Qdrant service is running"}
         except Exception as e:
-            return {"status": "unhealthy", "message": f"Connection to Qdrant failed: {e}"}
+            return {
+                "status": "unhealthy",
+                "message": f"Connection to Qdrant failed: {e}",
+            }
 
     @staticmethod
-    def _point_id(question: str) -> str:
-        normalized = question.strip().lower()
+    def _point_id(text: str) -> str:
+        normalized = text.strip().lower()
         return hashlib.sha256(normalized.encode()).hexdigest()[:32]
 
-    async def ensure_faq_collection(self) -> None:
+    async def ensure_collection(self) -> None:
         """
-        Creates the FAQ collection if it does not already exist.
+        Creates the collection if it does not already exist.
         """
         if await self.client.collection_exists(self.collection_name):
             return
         await self.client.create_collection(
             collection_name=self.collection_name,
-            vectors_config=models.VectorParams(size=self._embed_dim, distance=models.Distance.COSINE),
+            vectors_config=models.VectorParams(
+                size=self._embed_dim, distance=models.Distance.COSINE
+            ),
         )
 
-    async def upsert_faq_entry(
-        self, question: str, answer: str, embedding: list[float], category: str | None = None
+    async def upsert_doc_chunk(
+        self, source: str, heading: str, text: str, embedding: list[float]
     ) -> None:
         """
-        Upserts a single FAQ entry into the collection.
+        Upserts a single markdown doc chunk into the collection.
         """
-        await self.ensure_faq_collection()
+        await self.ensure_collection()
+        point_id = self._point_id(f"{source}:{heading}")
         await self.client.upsert(
             collection_name=self.collection_name,
             points=[
                 models.PointStruct(
-                    id=self._point_id(question),
+                    id=point_id,
                     vector=embedding,
-                    payload={"question": question, "answer": answer, "category": category or ""},
+                    payload={
+                        "type": "doc",
+                        "source": source,
+                        "heading": heading,
+                        "text": text,
+                    },
                 )
             ],
         )
-
-    async def find_similar_faq(self, embedding: list[float]) -> dict | None:
-        """
-        Finds the closest matching FAQ entry above the configured similarity threshold.
-        """
-        if not await self.client.collection_exists(self.collection_name):
-            return None
-        results = await self.client.query_points(
-            collection_name=self.collection_name,
-            query=embedding,
-            limit=1,
-        )
-        if not results.points:
-            return None
-        point = results.points[0]
-        if point.score < self._match_threshold:
-            return None
-        return {
-            "question": point.payload["question"],
-            "answer": point.payload["answer"],
-            "category": point.payload["category"],
-            "similarity": point.score,
-        }
