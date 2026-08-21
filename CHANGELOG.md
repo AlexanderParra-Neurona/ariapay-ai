@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Changed
 - Chat model is now configurable via `CHAT_MODEL` instead of hardcoded, used consistently by the FAQ generation script.
 - Default Qdrant collection renamed from `faq` to `ariapay_docs` to reflect broader docs corpus, and made configurable end-to-end (compose services, init script).
+- Qdrant ingestion now chunks markdown docs by heading instead of seeding from a flat FAQ JSON.
+
+#### Removed
+- `/chat` no longer short-circuits on a Qdrant FAQ match; it now always falls through to the no-answer response.
 
 ### 2026-08-20
 
