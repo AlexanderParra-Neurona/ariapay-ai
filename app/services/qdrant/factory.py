@@ -23,4 +23,6 @@ def make_qdrant_service() -> QdrantClient:
     except TypeError as e:
         raise RuntimeError(f"Failed to initialize Qdrant service: {e}") from e
     except Exception as e:
-        raise RuntimeError(f"An unexpected error occurred during Qdrant service initialization: {e}") from e
+        raise RuntimeError(
+            f"An unexpected error occurred during Qdrant service initialization: {e}"
+        ) from e

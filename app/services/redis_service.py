@@ -4,7 +4,6 @@ import struct
 import redis.asyncio as redis
 from redis.commands.search.field import TagField, TextField, VectorField
 from redis.commands.search.index_definition import IndexDefinition, IndexType
-from redis.commands.search.query import Query
 
 from app.config import settings
 
@@ -48,11 +47,14 @@ async def ensure_faq_index() -> None:
         ),
     )
     await r.ft(FAQ_INDEX).create_index(
-        schema, definition=IndexDefinition(prefix=[FAQ_PREFIX], index_type=IndexType.HASH)
+        schema,
+        definition=IndexDefinition(prefix=[FAQ_PREFIX], index_type=IndexType.HASH),
     )
 
 
-async def set_faq_entry(question: str, answer: str, embedding: list[float], category: str | None = None) -> None:
+async def set_faq_entry(
+    question: str, answer: str, embedding: list[float], category: str | None = None
+) -> None:
     await ensure_faq_index()
     key = f"{FAQ_PREFIX}{_doc_id(question)}"
     r = get_redis()
@@ -66,26 +68,3 @@ async def set_faq_entry(question: str, answer: str, embedding: list[float], cate
         },
     )
     await r.expire(key, settings.FAQ_CACHE_TTL_SECONDS)
-
-
-async def find_similar_faq(embedding: list[float]) -> dict | None:
-    await ensure_faq_index()
-    r = get_redis()
-    query = (
-        Query("*=>[KNN 1 @embedding $vec AS score]")
-        .sort_by("score")
-        .return_fields("question", "answer", "category", "score")
-        .dialect(2)
-    )
-    result = await r.ft(FAQ_INDEX).search(query, query_params={"vec": _vec_bytes(embedding)})
-    if not result.docs:
-        return None
-    doc = result.docs[0]
-    distance = float(doc.score)
-    similarity = 1 - distance / 2
-    return {
-        "question": doc.question,
-        "answer": doc.answer,
-        "category": doc.category,
-        "similarity": similarity,
-    }

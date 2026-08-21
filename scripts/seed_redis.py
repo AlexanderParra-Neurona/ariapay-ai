@@ -19,8 +19,12 @@ async def seed() -> None:
     docs = load_seed_docs()
     for doc in docs:
         vector = await embed(doc["question"])
-        await set_faq_entry(doc["question"], doc["answer"], vector, category=doc["category"])
-    print(f"Seeded {len(docs)} entries across {len({d['category'] for d in docs})} categories.")
+        await set_faq_entry(
+            doc["question"], doc["answer"], vector, category=doc["category"]
+        )
+    print(
+        f"Seeded {len(docs)} entries across {len({d['category'] for d in docs})} categories."
+    )
 
 
 async def clear() -> None:
