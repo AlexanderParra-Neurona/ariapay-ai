@@ -83,8 +83,6 @@ async def find_similar_faq(embedding: list[float]) -> dict | None:
     doc = result.docs[0]
     distance = float(doc.score)
     similarity = 1 - distance / 2
-    if similarity < settings.FAQ_MATCH_THRESHOLD:
-        return None
     return {
         "question": doc.question,
         "answer": doc.answer,
