@@ -27,14 +27,20 @@ REVIEW_OUTPUT="$(claude -p "$PROMPT" < /dev/null 2>&1)" || REVIEW_OUTPUT="VERDIC
 - Review agent failed to run (see error below); fix the pre-commit hook or re-run.
 $REVIEW_OUTPUT"
 
-{
+ENTRY="$(
   echo "## $TIMESTAMP"
   echo
   echo "$REVIEW_OUTPUT"
   echo
   echo "---"
   echo
-} >> "$LOG_FILE"
+)"
+
+if [ -f "$LOG_FILE" ]; then
+  printf '%s\n%s' "$ENTRY" "$(cat "$LOG_FILE")" > "$LOG_FILE"
+else
+  printf '%s\n' "$ENTRY" > "$LOG_FILE"
+fi
 
 if echo "$REVIEW_OUTPUT" | grep -q "^VERDICT: BLOCK"; then
   echo "$REVIEW_OUTPUT" >&2
