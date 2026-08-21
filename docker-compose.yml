@@ -27,6 +27,8 @@ services:
     image: ollama/ollama:latest
     environment:
       OLLAMA_HOST: http://ollama:11434
+      EMBED_MODEL: ${EMBED_MODEL}
+      CHAT_MODEL: ${CHAT_MODEL}
     volumes:
       - ./scripts/pull_models.sh:/pull_models.sh:ro
     entrypoint: ["sh", "/pull_models.sh"]
@@ -47,6 +49,19 @@ services:
       timeout: 5s
       retries: 5
 
+  qdrant-init:
+    image: curlimages/curl:latest
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ariapay_docs
+      EMBED_DIM: 4096
+    volumes:
+      - ./scripts/init_qdrant.sh:/init_qdrant.sh:ro
+    entrypoint: ["sh", "/init_qdrant.sh"]
+    depends_on:
+      qdrant:
+        condition: service_healthy
+
   app:
     build: .
     ports:
@@ -54,9 +69,11 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       OLLAMA_URL: http://ollama:11434
-      EMBED_MODEL: qwen3-embedding:8b
+      CHAT_MODEL: ${CHAT_MODEL}
+      EMBED_MODEL: ${EMBED_MODEL}
       EMBED_DIM: 4096
       QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: ariapay_docs
     depends_on:
       redis:
         condition: service_healthy
@@ -66,6 +83,8 @@ services:
         condition: service_completed_successfully
       qdrant:
         condition: service_healthy
+      qdrant-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

@@ -9,7 +9,6 @@ sys.path.insert(0, ".")
 from app.config import settings
 
 OUTPUT_DIR = Path("data")
-CHAT_MODEL = "llama3.1:latest"
 
 PAGES = {
     "terms": "https://www.ariapay.id/apps/en/terms",
@@ -47,7 +46,7 @@ def markdownify_with_llm(content: str) -> str:
     resp = httpx.post(
         f"{settings.OLLAMA_URL}/api/generate",
         json={
-            "model": CHAT_MODEL,
+            "model": settings.CHAT_MODEL,
             "prompt": PROMPT.format(content=content),
             "stream": False,
         },

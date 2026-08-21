@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-MODELS="qwen3-embedding:8b"
+MODELS="${EMBED_MODEL} ${CHAT_MODEL}"
 
 for model in $MODELS; do
   if ollama list | grep -q "$model"; then
