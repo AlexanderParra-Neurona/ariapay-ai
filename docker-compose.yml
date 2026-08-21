@@ -27,7 +27,9 @@ services:
     image: ollama/ollama:latest
     environment:
       OLLAMA_HOST: http://ollama:11434
-    entrypoint: ["sh", "-c", "ollama list | grep -q nomic-embed-text || ollama pull nomic-embed-text"]
+    volumes:
+      - ./scripts/pull_models.sh:/pull_models.sh:ro
+    entrypoint: ["sh", "/pull_models.sh"]
     depends_on:
       ollama:
         condition: service_healthy
@@ -52,6 +54,8 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       OLLAMA_URL: http://ollama:11434
+      EMBED_MODEL: qwen3-embedding:8b
+      EMBED_DIM: 4096
       QDRANT_URL: http://qdrant:6333
     depends_on:
       redis:
