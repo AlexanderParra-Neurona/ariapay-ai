@@ -4,16 +4,19 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_URL: str = "changeme"
     FAQ_CACHE_TTL_SECONDS: int = 3600
 
-    API_URL: str = "http://localhost:8000"
-    ARIAPAY_API_URL: str = "https://api.ariapay.id"
+    API_URL: str = "changeme"
+    ARIAPAY_API_URL: str = "changeme"
 
-    OLLAMA_URL: str = "http://localhost:11434"
-    EMBED_MODEL: str = "nomic-embed-text"
-    EMBED_DIM: int = 768
+    OLLAMA_URL: str = "changeme"
+    EMBED_MODEL: str = "changeme"
+    EMBED_DIM: int = 0
     FAQ_MATCH_THRESHOLD: float = 0.85
+
+    QDRANT_URL: str = "changeme"
+    QDRANT_COLLECTION: str = "faq"
 
     LOG_DIR: str = "logs"
     LOG_LEVEL: str = "INFO"

@@ -1,4 +1,7 @@
-.PHONY: up down clean build logs dev redis ui seed seed-clear scrape faq all
+.PHONY: up down clean build logs dev redis ui seed seed-clear scrape faq all setup-hooks
+
+setup-hooks:
+	@git config core.hooksPath .githooks
 
 up:
 	docker compose up --build
@@ -21,10 +24,10 @@ all:
 redis:
 	docker run --rm -p 6379:6379 --name ariabot-redis redis/redis-stack-server:latest
 
-dev:
+dev: setup-hooks
 	uv run uvicorn app.main:app --reload
 
-ui:
+ui: setup-hooks
 	uv run python -m app.ui
 
 seed:
