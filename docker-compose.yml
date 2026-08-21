@@ -53,8 +53,8 @@ services:
     image: curlimages/curl:latest
     environment:
       QDRANT_URL: http://qdrant:6333
-      QDRANT_COLLECTION: ariapay_docs
-      EMBED_DIM: 4096
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION}
+      EMBED_DIM: ${EMBED_DIM}
     volumes:
       - ./scripts/init_qdrant.sh:/init_qdrant.sh:ro
     entrypoint: ["sh", "/init_qdrant.sh"]
@@ -73,7 +73,7 @@ services:
       EMBED_MODEL: ${EMBED_MODEL}
       EMBED_DIM: 4096
       QDRANT_URL: http://qdrant:6333
-      QDRANT_COLLECTION: ariapay_docs
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION}
     depends_on:
       redis:
         condition: service_healthy
