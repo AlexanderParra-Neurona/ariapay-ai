@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     API_URL: str = "changeme"
     ARIAPAY_API_URL: str = "changeme"
 
+    LLM_PROVIDER: str = "ollama"
+
     OLLAMA_URL: str = "changeme"
     CHAT_MODEL: str = "changeme"
     EMBED_MODEL: str = "changeme"
