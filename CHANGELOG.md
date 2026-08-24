@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pre-commit hook wired into `.claude/settings.json` as PreToolUse hook on `git commit`, gated by new `.reviewer` file (set to `claude`).
 - /chat use classifier instead of keyword match for account-data detection.
 - /chat account-data detection switch from keyword match to classifier-based routing.
+- Ollama data now bind-mounts to `./ollama_data` on host instead of named Docker volume, for easier local access/backup.
+- Ollama data now persists to a local `./ollama_data` folder on host instead of an internal Docker volume, for easier backup/access.
 
 ### 2026-08-21
 

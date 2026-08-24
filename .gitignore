@@ -221,5 +221,8 @@ __marimo__/
 # Claude Code
 .claude/settings.local.json
 
+# Docker bind-mounted data
+/ollama_data/
+
 # pre-commit review hook
 .githooks/review-log.md

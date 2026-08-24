@@ -16,7 +16,7 @@ services:
     ports:
       - "11434:11434"
     volumes:
-      - ollama_data:/root/.ollama
+      - ./ollama_data:/root/.ollama
     healthcheck:
       test: ["CMD", "ollama", "list"]
       interval: 30s
@@ -110,5 +110,4 @@ services:
 
 volumes:
   redis_data:
-  ollama_data:
   qdrant_data:
