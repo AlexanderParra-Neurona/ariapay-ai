@@ -12,10 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Added
 - Sparse retrieval exploration notebook: BM25 baseline, late-interaction reranking, and RAGAS-based quality evaluation.
 - Pre-commit review hook now switches between Claude CLI or local Ollama model based on `.reviewer` config file, and drafts CHANGELOG.md entries from staged diffs.
+- LLM-based query classifier route general FAQ, transaction, out-of-scope questions.
+- out-of-scope questions get canned decline answer instead of falling thru to doc search.
+- new LLM-based query classifier routes chat questions into general FAQ, transaction, or out-of-scope buckets.
+- out-of-scope questions now get canned decline reply instead of falling through to doc search.
 
 #### Changed
 - LLM backend is now pluggable via `LLM_PROVIDER` config instead of hardcoded to Ollama.
 - Pre-commit hook wired into `.claude/settings.json` as PreToolUse hook on `git commit`, gated by new `.reviewer` file (set to `claude`).
+- /chat use classifier instead of keyword match for account-data detection.
+- /chat account-data detection switch from keyword match to classifier-based routing.
 
 ### 2026-08-21
 

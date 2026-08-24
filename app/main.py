@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 from app.logging_config import setup_logging
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError, get_me, login, verify_passcode
+from app.services.classification import QueryCategory, get_query_classifier
 from app.services.llm import get_llm_service
 from app.services.retrieval import get_hybrid_retriever
 
@@ -13,14 +14,8 @@ logger = logging.getLogger("ariabot.api")
 
 app = FastAPI(title="ariabot")
 
-USER_DATA_KEYWORDS = (
-    "my profile",
-    "my account",
-    "my card",
-    "my cards",
-    "my balance",
-    "my email",
-    "my phone number",
+OUT_OF_SCOPE_ANSWER = (
+    "Sorry, I can't help with that. I can answer questions about Ariapay or your account balance and transactions."
 )
 
 
@@ -44,11 +39,6 @@ class LoginRequest(BaseModel):
 class LoginResponse(BaseModel):
     access_token: str
     refresh_token: str
-
-
-def _is_user_data_question(question: str) -> bool:
-    lowered = question.lower()
-    return any(keyword in lowered for keyword in USER_DATA_KEYWORDS)
 
 
 def _answer_from_docs(question: str) -> str:
@@ -103,7 +93,10 @@ async def auth_login(req: LoginRequest):
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
     logger.info("call=/chat question=%r authenticated=%s", req.question, bool(req.access_token))
-    if _is_user_data_question(req.question):
+    category = get_query_classifier().classify(req.question)
+    logger.info("call=/chat category=%s", category.value)
+
+    if category == QueryCategory.TRANSACTION_INQUIRY:
         if not req.access_token:
             logger.info("call=/chat result=unauthenticated")
             return ChatResponse(answer="Please sign in to view your account details.", short_circuit=True)
@@ -117,6 +110,10 @@ async def chat(req: ChatRequest):
             return ChatResponse(answer="Sorry, I couldn't fetch your account details right now.", short_circuit=True)
         logger.info("call=/chat result=user_data_success")
         return ChatResponse(answer=_format_me_answer(user), short_circuit=True)
+
+    if category == QueryCategory.OUT_OF_SCOPE:
+        logger.info("call=/chat result=out_of_scope")
+        return ChatResponse(answer=OUT_OF_SCOPE_ANSWER, short_circuit=True)
 
     answer = _answer_from_docs(req.question)
     logger.info("call=/chat result=doc_answer")
