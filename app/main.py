@@ -55,6 +55,21 @@ def _answer_from_docs(question: str) -> str:
     return get_llm_service().chat([{"role": "user", "content": prompt}])
 
 
+def _answer_from_transactions(question: str) -> str:
+    docs = get_hybrid_retriever().search_transactions(question)
+    if not docs:
+        return "I couldn't find any transactions matching that."
+
+    context_block = "\n".join(d.page_content for d in docs)
+    prompt = (
+        "Answer the question using only the transactions listed below. Be concise, "
+        "sum amounts if asked for a total.\n\n"
+        f"Transactions:\n{context_block}\n\n"
+        f"Question: {question}\n\nAnswer:"
+    )
+    return get_llm_service().chat([{"role": "user", "content": prompt}])
+
+
 def _format_me_answer(user: dict) -> str:
     cards = user.get("cards") or []
     card_lines = [f"- {c['card_network']} {c['number']} ({c['card_type']})" for c in cards]
@@ -96,7 +111,7 @@ async def chat(req: ChatRequest):
     category = get_query_classifier().classify(req.question)
     logger.info("call=/chat category=%s", category.value)
 
-    if category == QueryCategory.TRANSACTION_INQUIRY:
+    if category == QueryCategory.ACCOUNT_PROFILE:
         if not req.access_token:
             logger.info("call=/chat result=unauthenticated")
             return ChatResponse(answer="Please sign in to view your account details.", short_circuit=True)
@@ -110,6 +125,14 @@ async def chat(req: ChatRequest):
             return ChatResponse(answer="Sorry, I couldn't fetch your account details right now.", short_circuit=True)
         logger.info("call=/chat result=user_data_success")
         return ChatResponse(answer=_format_me_answer(user), short_circuit=True)
+
+    if category == QueryCategory.TRANSACTION_HISTORY:
+        if not req.access_token:
+            logger.info("call=/chat result=unauthenticated")
+            return ChatResponse(answer="Please sign in to view your transactions.", short_circuit=True)
+        answer = _answer_from_transactions(req.question)
+        logger.info("call=/chat result=transaction_answer")
+        return ChatResponse(answer=answer, short_circuit=True)
 
     if category == QueryCategory.OUT_OF_SCOPE:
         logger.info("call=/chat result=out_of_scope")

@@ -10,12 +10,13 @@ _SYSTEM_PROMPT = """You are a query classifier for Ariapay, a payments app assis
 Classify the user's message into exactly one category:
 
 - general_faq: general questions, how-to, product info, education about Ariapay features (not tied to the user's own account data).
-- transaction_inquiry: questions about the user's own balance, transactions, cards, profile, or account data.
+- account_profile: questions about the user's own identity, cards on file, or profile details (e.g. "what cards do I have", "what's my email").
+- transaction_history: questions about the user's own spending, balance, or past transactions (e.g. "how much did I spend on food", "show my recent transactions").
 - out_of_scope: anything else - payment requests/instructions to move money, unrelated topics, or requests the assistant should not act on.
 
-Respond with only the category label, nothing else. Valid labels: general_faq, transaction_inquiry, out_of_scope."""
+Respond with only the category label, nothing else. Valid labels: general_faq, account_profile, transaction_history, out_of_scope."""
 
-_LABEL_PATTERN = re.compile(r"general_faq|transaction_inquiry|out_of_scope")
+_LABEL_PATTERN = re.compile(r"general_faq|account_profile|transaction_history|out_of_scope")
 
 
 class QueryClassifier:

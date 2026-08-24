@@ -25,6 +25,9 @@ def login() -> tuple[str, str]:
     }
     resp = requests.post(f"{settings.API_URL}/auth/login", json=payload, timeout=30)
     if not resp.ok:
-        detail = resp.json().get("detail", "Login failed")
+        try:
+            detail = resp.json().get("detail", "Login failed")
+        except ValueError:
+            detail = "Login failed"
         return "", detail
     return resp.json()["access_token"], "Login successful"

@@ -68,6 +68,7 @@ services:
       - "8000:8000"
     environment:
       REDIS_URL: redis://redis:6379/0
+      ARIAPAY_API_URL: ${ARIAPAY_API_URL}
       OLLAMA_URL: http://ollama:11434
       CHAT_MODEL: ${CHAT_MODEL}
       EMBED_MODEL: ${EMBED_MODEL}

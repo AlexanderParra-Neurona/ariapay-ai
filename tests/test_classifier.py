@@ -22,12 +22,13 @@ class StubLLMService(LLMService):
     ("reply", "expected"),
     [
         ("general_faq", QueryCategory.GENERAL_FAQ),
-        ("transaction_inquiry", QueryCategory.TRANSACTION_INQUIRY),
+        ("account_profile", QueryCategory.ACCOUNT_PROFILE),
+        ("transaction_history", QueryCategory.TRANSACTION_HISTORY),
         ("out_of_scope", QueryCategory.OUT_OF_SCOPE),
         ("General_FAQ", QueryCategory.GENERAL_FAQ),
-        ("  transaction_inquiry\n", QueryCategory.TRANSACTION_INQUIRY),
+        ("  transaction_history\n", QueryCategory.TRANSACTION_HISTORY),
         ("Category: out_of_scope.", QueryCategory.OUT_OF_SCOPE),
-        ("sure, this is a transaction_inquiry question", QueryCategory.TRANSACTION_INQUIRY),
+        ("sure, this is a transaction_history question", QueryCategory.TRANSACTION_HISTORY),
     ],
 )
 def test_classify_labels(reply: str, expected: QueryCategory) -> None:
@@ -71,14 +72,26 @@ def test_general_faq_examples(question: str) -> None:
 @pytest.mark.parametrize(
     "question",
     [
-        "What's my current balance?",
-        "Show me my last 5 transactions",
         "What card do I have on file?",
+        "What's my name and email on this account?",
     ],
 )
-def test_transaction_inquiry_examples(question: str) -> None:
-    classifier = QueryClassifier(StubLLMService("transaction_inquiry"))
-    assert classifier.classify(question) == QueryCategory.TRANSACTION_INQUIRY
+def test_account_profile_examples(question: str) -> None:
+    classifier = QueryClassifier(StubLLMService("account_profile"))
+    assert classifier.classify(question) == QueryCategory.ACCOUNT_PROFILE
+
+
+@pytest.mark.parametrize(
+    "question",
+    [
+        "What's my current balance?",
+        "Show me my last 5 transactions",
+        "How much did I spend on food?",
+    ],
+)
+def test_transaction_history_examples(question: str) -> None:
+    classifier = QueryClassifier(StubLLMService("transaction_history"))
+    assert classifier.classify(question) == QueryCategory.TRANSACTION_HISTORY
 
 
 @pytest.mark.parametrize(

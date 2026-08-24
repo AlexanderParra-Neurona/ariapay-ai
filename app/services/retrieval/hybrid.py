@@ -39,3 +39,10 @@ class HybridRetriever:
                 top.metadata.get("heading"),
             )
         return docs
+
+    def search_transactions(self, query: str, top_k: int | None = None) -> list[Document]:
+        top_k = top_k or settings.RETRIEVAL_TOP_K
+        hits = self._qdrant_service.similarity_search_transactions_with_score(query, k=top_k)
+        docs = [doc for doc, _ in hits]
+        logger.info("hybrid_search_transactions query=%r result_count=%d", query, len(docs))
+        return docs
