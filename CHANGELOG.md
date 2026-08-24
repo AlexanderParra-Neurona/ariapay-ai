@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - out-of-scope questions get canned decline answer instead of falling thru to doc search.
 - new LLM-based query classifier routes chat questions into general FAQ, transaction, or out-of-scope buckets.
 - out-of-scope questions now get canned decline reply instead of falling through to doc search.
+- Seed data now include new merchant transaction dataset (`transactions.json`)
 
 #### Changed
 - LLM backend is now pluggable via `LLM_PROVIDER` config instead of hardcoded to Ollama.
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - /chat account-data detection switch from keyword match to classifier-based routing.
 - Ollama data now bind-mounts to `./ollama_data` on host instead of named Docker volume, for easier local access/backup.
 - Ollama data now persists to a local `./ollama_data` folder on host instead of an internal Docker volume, for easier backup/access.
+- FAQ answers expand with more detail — fees change notice, refund policy, reseller/sublicense ban, data retention/deletion, account eligibility, termination/suspension rights, dispute jurisdiction, contact emails for legal/privacy
 
 ### 2026-08-21
 

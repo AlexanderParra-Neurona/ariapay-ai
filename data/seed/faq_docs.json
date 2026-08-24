@@ -21,13 +21,18 @@
   },
   {
     "category": "terms",
+    "question": "Who is eligible to open an Ariapay account?",
+    "answer": "You must be at least 18 years of age and legally capable of entering into a binding contract in your jurisdiction."
+  },
+  {
+    "category": "terms",
     "question": "What is required to create a business account with Ariapay?",
     "answer": "Business accounts require valid business registration documents."
   },
   {
     "category": "terms",
     "question": "How does Ariapay process payments on my behalf?",
-    "answer": "Ariapay processes payments on your behalf in accordance with applicable financial regulations and card scheme rules. By accepting payments through our platform you authorise Ariapay to: Process transactions submitted through the platform, Hold, receive, and disburse funds on your behalf, Deduct applicable fees before settlement, Reverse or refund transactions where required by law or card scheme rules"
+    "answer": "Ariapay processes payments on your behalf in accordance with applicable financial regulations and card scheme rules. By accepting payments through our platform you authorise Ariapay to: Process transactions submitted through the platform, Hold, receive, and disburse funds on your behalf, Deduct applicable fees before settlement, Reverse or refund transactions where required by law or card scheme rules."
   },
   {
     "category": "terms",
@@ -36,8 +41,23 @@
   },
   {
     "category": "terms",
+    "question": "Can Ariapay change its fees?",
+    "answer": "We reserve the right to update our fee structure with at least 30 days' notice. Continued use after the notice period constitutes acceptance of the new fees."
+  },
+  {
+    "category": "terms",
     "question": "Can I use Ariapay for illegal goods or services?",
-    "answer": "You must not use Ariapay to: Process payments for illegal goods or services, Engage in money laundering, fraud, or financial crime"
+    "answer": "You must not use Ariapay to process payments for illegal goods or services, or to engage in money laundering, fraud, or financial crime."
+  },
+  {
+    "category": "terms",
+    "question": "Can I resell or sublicense my access to Ariapay?",
+    "answer": "No. You must not resell or sublicense access to the platform without written authorisation from Ariapay. You also must not submit false, misleading, or duplicate transactions, or attempt to circumvent security measures or access controls."
+  },
+  {
+    "category": "terms",
+    "question": "Who sets the refund policy for my customers?",
+    "answer": "Merchants are responsible for setting and communicating their own refund policies to customers. Ariapay will process refunds initiated by the merchant up to the original transaction amount."
   },
   {
     "category": "terms",
@@ -47,22 +67,32 @@
   {
     "category": "terms",
     "question": "How does Ariapay protect my personal data?",
-    "answer": "Ariapay collects and processes personal data in accordance with our Privacy Policy and applicable data protection laws including GDPR where relevant. We use industry-standard encryption and are PCI DSS Level 1 certified."
+    "answer": "Ariapay collects and processes personal data in accordance with our Privacy Policy and applicable data protection laws including GDPR where relevant. We use industry-standard encryption and are PCI DSS Level 1 certified. We do not sell your personal data to third parties; it is shared only with payment networks, regulatory bodies, and service providers necessary to deliver the service."
   },
   {
     "category": "terms",
     "question": "What is the maximum amount I can claim if there's a problem with my account?",
-    "answer": "Our total liability for any claim arising from or related to this agreement shall not exceed the fees you paid to Ariapay in the three months preceding the claim."
+    "answer": "To the maximum extent permitted by applicable law, Ariapay is not liable for indirect, incidental, special, consequential, or punitive damages. Our total liability for any claim arising from or related to this agreement shall not exceed the fees you paid to Ariapay in the three months preceding the claim."
   },
   {
     "category": "terms",
     "question": "How do I terminate my account with Ariapay?",
-    "answer": "Either party may terminate this agreement at any time. You may close your account from within the app settings."
+    "answer": "Either party may terminate this agreement at any time. You may close your account from within the app settings. Ariapay may also suspend or terminate your access for breach of these terms, suspected fraud, or regulatory requirements."
+  },
+  {
+    "category": "terms",
+    "question": "How long does it take to receive my remaining balance after I close my account?",
+    "answer": "Upon termination, any outstanding balance owed to you will be settled after a standard review period of up to 14 business days."
   },
   {
     "category": "terms",
     "question": "What law governs these Terms and Conditions?",
-    "answer": "These Terms are governed by and construed in accordance with the laws of the jurisdiction in which Ariapay is incorporated."
+    "answer": "These Terms are governed by and construed in accordance with the laws of the jurisdiction in which Ariapay is incorporated. Any disputes shall be submitted to the exclusive jurisdiction of the courts in that jurisdiction."
+  },
+  {
+    "category": "terms",
+    "question": "Who do I contact with questions about the Terms and Conditions?",
+    "answer": "You can contact us at legal@ariapay.com."
   },
   {
     "category": "company",
@@ -97,12 +127,12 @@
   {
     "category": "company",
     "question": "How long has Ariapay been operating, and how many transactions does it process per month?",
-    "answer": "Ariapay was founded in 2022 by a team of fintech engineers and ex-banking operators. Today, the platform processes over 2 million transactions a month for more than 500 merchants across various industries."
+    "answer": "Ariapay was founded in 2022 by a team of fintech engineers and ex-banking operators. Today, the platform processes over 2 million transactions a month for more than 500 merchants across retail, hospitality, and professional services."
   },
   {
     "category": "privacy",
     "question": "What information do you collect when I register an account?",
-    "answer": "We collect information such as your name, email address, phone number, and business details."
+    "answer": "We collect information you provide directly, such as your name, email address, phone number, and business details when you register an account, and payment card information when you add a payment method."
   },
   {
     "category": "privacy",
@@ -112,27 +142,27 @@
   {
     "category": "privacy",
     "question": "How do you use the information you collect about me?",
-    "answer": "We use it to create and manage your Ariapay account, process transactions, provide customer support, comply with legal obligations, and improve our products and services."
+    "answer": "We use it to create and manage your Ariapay account, process transactions and prevent fraud, provide customer support and respond to inquiries, comply with legal and regulatory obligations, and improve and secure our products and services."
   },
   {
     "category": "privacy",
     "question": "Do you sell my personal data to third parties?",
-    "answer": "No, we do not sell your personal data. We only share it with payment networks, banking partners, regulators, and service providers who need it to deliver the service."
+    "answer": "No, we do not sell your personal data. We only share it with payment networks, banking partners, regulators, and service providers who need it to deliver the service, and only to the extent necessary. We may also disclose information if required by law, court order, or to protect the rights, property, or safety of Ariapay, our users, or the public."
   },
   {
     "category": "privacy",
     "question": "How do you protect sensitive data like card numbers?",
-    "answer": "Card numbers are encrypted at rest and in transit using industry-standard encryption (AES-256), and we are PCI DSS Level 1 certified with regular independent security audits."
+    "answer": "Card numbers and other sensitive data are encrypted at rest and in transit using industry-standard encryption (AES-256), and we are PCI DSS Level 1 certified with regular independent security audits. CVV codes are never stored after a transaction is authorised, and card numbers are shown masked everywhere in our app and dashboard."
   },
   {
     "category": "privacy",
     "question": "For how long do you retain my personal data?",
-    "answer": "We retain your data for as long as your account is active, and for a period afterward to comply with legal, tax, and regulatory obligations, or to resolve disputes."
+    "answer": "We retain your data for as long as your account is active, and for a period afterward to comply with legal, tax, and regulatory obligations, or to resolve disputes. If you delete your account, we soft-delete your data and permanently erase it after the legally required retention period has elapsed."
   },
   {
     "category": "privacy",
     "question": "Can I access and correct my personal data?",
-    "answer": "Depending on your jurisdiction, you may have the right to access, correct, export, or delete your personal data. You can update your profile information directly in the app or request account deletion from Settings or our account-deletion portal."
+    "answer": "Depending on your jurisdiction, you may have the right to access, correct, export, or delete your personal data, and to object to or restrict certain processing. You can update your profile information directly in the app or request account deletion from Settings or our account-deletion portal."
   },
   {
     "category": "privacy",
@@ -148,5 +178,10 @@
     "category": "privacy",
     "question": "How will I be notified if you change this Privacy Policy?",
     "answer": "We will notify you of material changes through the app or by email before they take effect."
+  },
+  {
+    "category": "privacy",
+    "question": "Who do I contact with questions about the Privacy Policy?",
+    "answer": "You can contact us at privacy@ariapay.com."
   }
 ]
