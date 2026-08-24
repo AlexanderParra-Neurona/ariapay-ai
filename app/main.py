@@ -5,6 +5,8 @@ from pydantic import BaseModel
 
 from app.logging_config import setup_logging
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError, get_me, login, verify_passcode
+from app.services.llm import get_llm_service
+from app.services.retrieval import get_hybrid_retriever
 
 setup_logging()
 logger = logging.getLogger("ariabot.api")
@@ -47,6 +49,20 @@ class LoginResponse(BaseModel):
 def _is_user_data_question(question: str) -> bool:
     lowered = question.lower()
     return any(keyword in lowered for keyword in USER_DATA_KEYWORDS)
+
+
+def _answer_from_docs(question: str) -> str:
+    docs = get_hybrid_retriever().search(question)
+    if not docs:
+        return "Sorry, I don't have information on that."
+
+    context_block = "\n\n".join(d.page_content for d in docs)
+    prompt = (
+        "Answer the question using only the context below. Be concise.\n\n"
+        f"Context:\n{context_block}\n\n"
+        f"Question: {question}\n\nAnswer:"
+    )
+    return get_llm_service().chat([{"role": "user", "content": prompt}])
 
 
 def _format_me_answer(user: dict) -> str:
@@ -102,4 +118,6 @@ async def chat(req: ChatRequest):
         logger.info("call=/chat result=user_data_success")
         return ChatResponse(answer=_format_me_answer(user), short_circuit=True)
 
-    return ChatResponse(answer="Sorry, I don't have an answer for that yet.", short_circuit=False)
+    answer = _answer_from_docs(req.question)
+    logger.info("call=/chat result=doc_answer")
+    return ChatResponse(answer=answer, short_circuit=False)

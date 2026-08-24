@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     QDRANT_URL: str = "changeme"
     QDRANT_COLLECTION: str = "changeme"
 
+    RETRIEVAL_TOP_K: int = 5
+    RETRIEVAL_CANDIDATE_POOL: int = 20
+
     LOG_DIR: str = "logs"
     LOG_LEVEL: str = "INFO"
 

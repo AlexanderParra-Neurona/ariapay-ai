@@ -46,3 +46,14 @@ class QdrantService:
 
     def similarity_search(self, query: str, k: int = 4) -> list[Document]:
         return self._store.similarity_search(query, k=k)
+
+    def similarity_search_with_score(self, query: str, k: int = 4) -> list[tuple[Document, float]]:
+        return self._store.similarity_search_with_score(query, k=k)
+
+    @property
+    def client(self) -> _QdrantClient:
+        return self._client
+
+    @property
+    def collection_name(self) -> str:
+        return COLLECTION_NAME
