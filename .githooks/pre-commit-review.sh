@@ -1,12 +1,23 @@
 #!/usr/bin/env bash
-# PreToolUse(Bash, git commit*) hook: runs a headless code review of the
-# staged diff via a local Ollama model, logs the result, and blocks the
-# commit on real findings.
+# git pre-commit hook: runs a headless code review of the staged diff via
+# the provider named in `.reviewer` (repo root), logs the result, and
+# blocks the commit on real findings. Also drafts a CHANGELOG.md entry.
+#
+# `.reviewer` holds a single provider name: `claude` or `ollama`.
+# - claude: routes through the `claude` CLI (needs an active session/login).
+# - ollama: routes through a local `ollama run` model, no network needed.
+#   Override the model with OLLAMA_REVIEW_MODEL (default: ornith-1.5:9b).
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 LOG_FILE="$REPO_ROOT/.githooks/review-log.md"
 TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"
+
+REVIEWER_FILE="$REPO_ROOT/.reviewer"
+PROVIDER="claude"
+if [ -f "$REVIEWER_FILE" ]; then
+  PROVIDER="$(tr -d '[:space:]' < "$REVIEWER_FILE")"
+fi
 OLLAMA_MODEL="${OLLAMA_REVIEW_MODEL:-ornith-1.5:9b}"
 
 DIFF="$(git diff --cached)"
@@ -14,7 +25,24 @@ if [ -z "$DIFF" ]; then
   exit 0
 fi
 
-PROMPT="Review the following staged git diff for correctness bugs and significant quality issues.
+# run_llm PROMPT: sends PROMPT to the configured provider, prints the response.
+run_llm() {
+  local prompt="$1"
+  case "$PROVIDER" in
+    claude)
+      claude -p "$prompt" < /dev/null 2>&1
+      ;;
+    ollama)
+      ollama run "$OLLAMA_MODEL" "$prompt" < /dev/null 2>&1
+      ;;
+    *)
+      echo "Unknown reviewer provider '$PROVIDER' in $REVIEWER_FILE (expected: claude, ollama)" >&2
+      return 1
+      ;;
+  esac
+}
+
+REVIEW_PROMPT="Review the following staged git diff for correctness bugs and significant quality issues. Read referenced files if needed for context.
 
 Respond in this exact format:
 VERDICT: OK or VERDICT: BLOCK
@@ -25,12 +53,12 @@ Be strict about only blocking on real problems (bugs, broken logic, security iss
 DIFF:
 $DIFF"
 
-REVIEW_OUTPUT="$(ollama run "$OLLAMA_MODEL" "$PROMPT" < /dev/null 2>&1)" || REVIEW_OUTPUT="VERDICT: BLOCK
-- Review agent failed to run (see error below); fix the pre-commit hook or re-run.
+REVIEW_OUTPUT="$(run_llm "$REVIEW_PROMPT")" || REVIEW_OUTPUT="VERDICT: BLOCK
+- Review agent failed to run via provider '$PROVIDER' (see error below); fix the pre-commit hook or re-run.
 $REVIEW_OUTPUT"
 
 ENTRY="$(
-  echo "## $TIMESTAMP"
+  echo "## $TIMESTAMP ($PROVIDER)"
   echo
   echo "$REVIEW_OUTPUT"
   echo
@@ -67,7 +95,7 @@ Rules:
 DIFF:
 $DIFF"
 
-CHANGELOG_LINES="$(ollama run "$OLLAMA_MODEL" "$CHANGELOG_PROMPT" < /dev/null 2>/dev/null || true)"
+CHANGELOG_LINES="$(run_llm "$CHANGELOG_PROMPT" 2>/dev/null || true)"
 
 if [ -n "$CHANGELOG_LINES" ] && ! echo "$CHANGELOG_LINES" | grep -q "^NONE$"; then
   [ -f "$CHANGELOG_FILE" ] || printf '# Changelog\n\nAll notable changes to this project will be documented in this file.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),\nand this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n\n## [Unreleased]\n' > "$CHANGELOG_FILE"
