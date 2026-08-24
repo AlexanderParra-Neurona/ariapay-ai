@@ -1,12 +1,10 @@
-import asyncio
 import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, ".")
 
-from app.services.llm import get_llm_service
-from app.services.qdrant.factory import make_qdrant_service
+from app.services.qdrant import get_qdrant_service
 
 DATA_DIR = Path("data")
 HEADING_RE = re.compile(r"^##\s+(.+)$", re.MULTILINE)
@@ -37,8 +35,8 @@ def chunk_markdown(text: str) -> list[tuple[str, str]]:
     return chunks
 
 
-async def seed() -> None:
-    service = make_qdrant_service()
+def seed() -> None:
+    service = get_qdrant_service()
     files = load_md_files()
     total = 0
     for path in files:
@@ -46,12 +44,10 @@ async def seed() -> None:
         for heading, body in chunk_markdown(text):
             if not body:
                 continue
-            content = f"{heading}\n\n{body}" if heading else body
-            vector = get_llm_service().embed(content)
-            await service.upsert_doc_chunk(path.name, heading, body, vector)
+            service.upsert_doc_chunk(path.name, heading, body)
             total += 1
     print(f"Seeded {total} doc chunks from {len(files)} files.")
 
 
 if __name__ == "__main__":
-    asyncio.run(seed())
+    seed()
