@@ -1,6 +1,7 @@
 import logging
 
 from langchain_core.documents import Document
+from qdrant_client.http.models import FieldCondition, Filter, MatchValue
 from rank_bm25 import BM25Okapi
 
 from app.services.qdrant.qdrant import QdrantService
@@ -24,6 +25,7 @@ class SparseRetriever:
         while True:
             batch, offset = qdrant_service.client.scroll(
                 qdrant_service.collection_name,
+                scroll_filter=Filter(must=[FieldCondition(key="metadata.type", match=MatchValue(value="doc"))]),
                 limit=1000,
                 offset=offset,
                 with_payload=True,

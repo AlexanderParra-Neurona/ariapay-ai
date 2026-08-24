@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - new LLM-based query classifier routes chat questions into general FAQ, transaction, or out-of-scope buckets.
 - out-of-scope questions now get canned decline reply instead of falling through to doc search.
 - Seed data now include new merchant transaction dataset (`transactions.json`)
+- Support transaction data alongside docs, enabling transaction-based search/queries.
 
 #### Changed
 - LLM backend is now pluggable via `LLM_PROVIDER` config instead of hardcoded to Ollama.
@@ -26,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ollama data now bind-mounts to `./ollama_data` on host instead of named Docker volume, for easier local access/backup.
 - Ollama data now persists to a local `./ollama_data` folder on host instead of an internal Docker volume, for easier backup/access.
 - FAQ answers expand with more detail — fees change notice, refund policy, reseller/sublicense ban, data retention/deletion, account eligibility, termination/suspension rights, dispute jurisdiction, contact emails for legal/privacy
+- Qdrant collection now use two named vectors (docs, transactions) instead of single unnamed vector; existing collections need migration.
+
+#### Fixed
+- Sparse (BM25) retriever now filter scroll to doc-type points only, avoiding transaction data polluting keyword search results.
 
 ### 2026-08-21
 
