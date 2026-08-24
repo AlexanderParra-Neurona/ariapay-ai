@@ -220,4 +220,6 @@ __marimo__/
 
 # Claude Code
 .claude/settings.local.json
-.claude/review-log.md
+
+# pre-commit review hook
+.githooks/review-log.md

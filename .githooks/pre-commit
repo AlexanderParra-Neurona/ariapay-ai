@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# git pre-commit hook: runs the same headless code review used by Claude
-# Code's PreToolUse hook, so `git commit` from a plain terminal is covered
-# too. Enable with: git config core.hooksPath .githooks
+# git pre-commit hook: runs a headless code review via local Ollama model.
+# Enable with: git config core.hooksPath .githooks
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-exec "$REPO_ROOT/.claude/hooks/pre-commit-review.sh"
+exec "$REPO_ROOT/.githooks/pre-commit-review.sh"
