@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-08-24
+
+#### Added
+- Sparse retrieval exploration notebook: BM25 baseline, late-interaction reranking, and RAGAS-based quality evaluation.
+
+#### Changed
+- LLM backend is now pluggable via `LLM_PROVIDER` config instead of hardcoded to Ollama.
+
 ### 2026-08-21
 
 #### Changed

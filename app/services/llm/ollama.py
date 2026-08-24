@@ -1,26 +1,19 @@
-import httpx
+from langchain_ollama import ChatOllama, OllamaEmbeddings
 
 from app.config import settings
 from app.services.llm.base import LLMService
 
 
 class OllamaService(LLMService):
-    async def embed(self, text: str) -> list[float]:
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{settings.OLLAMA_URL}/api/embed",
-                json={"model": settings.EMBED_MODEL, "input": text},
-                timeout=30,
-            )
-            resp.raise_for_status()
-            return resp.json()["embeddings"][0]
+    def __init__(self) -> None:
+        self._embeddings = OllamaEmbeddings(model=settings.EMBED_MODEL, base_url=settings.OLLAMA_URL)
+        self._chat = ChatOllama(
+            model=settings.CHAT_MODEL, base_url=settings.OLLAMA_URL, client_kwargs={"timeout": 120}
+        )
 
-    async def chat(self, messages: list[dict[str, str]]) -> str:
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{settings.OLLAMA_URL}/api/chat",
-                json={"model": settings.CHAT_MODEL, "messages": messages, "stream": False},
-                timeout=60,
-            )
-            resp.raise_for_status()
-            return resp.json()["message"]["content"]
+    def embed(self, text: str) -> list[float]:
+        return self._embeddings.embed_query(text)
+
+    def chat(self, messages: list[dict[str, str]]) -> str:
+        resp = self._chat.invoke(messages)
+        return resp.content

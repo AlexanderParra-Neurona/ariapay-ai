@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, ".")
 
-from app.services.ollama_service import embed
+from app.services.llm import get_llm_service
 from app.services.qdrant.factory import make_qdrant_service
 
 DATA_DIR = Path("data")
@@ -47,7 +47,7 @@ async def seed() -> None:
             if not body:
                 continue
             content = f"{heading}\n\n{body}" if heading else body
-            vector = await embed(content)
+            vector = get_llm_service().embed(content)
             await service.upsert_doc_chunk(path.name, heading, body, vector)
             total += 1
     print(f"Seeded {total} doc chunks from {len(files)} files.")
