@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-08-26
+
+#### Added
+- DeepInfra now selectable as LLM provider alongside Ollama, via `LLM_PROVIDER=deepinfra`.
+
+#### Changed
+- env vars for chat/embed model split per-provider (`OLLAMA_*`, `DEEPINFRA_*`) instead of shared `CHAT_MODEL`/`EMBED_MODEL`/`EMBED_DIM` — deployments must update `.env`.
+
 ### 2026-08-24
 
 #### Added

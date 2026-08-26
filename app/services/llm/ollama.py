@@ -6,9 +6,9 @@ from app.services.llm.base import LLMService
 
 class OllamaService(LLMService):
     def __init__(self) -> None:
-        self._embeddings = OllamaEmbeddings(model=settings.EMBED_MODEL, base_url=settings.OLLAMA_URL)
+        self._embeddings = OllamaEmbeddings(model=settings.OLLAMA_EMBED_MODEL, base_url=settings.OLLAMA_URL)
         self._chat = ChatOllama(
-            model=settings.CHAT_MODEL, base_url=settings.OLLAMA_URL, client_kwargs={"timeout": 120}
+            model=settings.OLLAMA_CHAT_MODEL, base_url=settings.OLLAMA_URL, client_kwargs={"timeout": 120}
         )
 
     def embed(self, text: str) -> list[float]:

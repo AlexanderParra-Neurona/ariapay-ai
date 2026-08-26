@@ -1,6 +1,12 @@
 #!/bin/sh
 set -eu
 
+if [ "$LLM_PROVIDER" = "deepinfra" ]; then
+  EMBED_DIM="$DEEPINFRA_EMBED_DIM"
+else
+  EMBED_DIM="$OLLAMA_EMBED_DIM"
+fi
+
 COLLECTIONS="${QDRANT_COLLECTION}"
 
 for collection in $COLLECTIONS; do
