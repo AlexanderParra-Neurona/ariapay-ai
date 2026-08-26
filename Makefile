@@ -4,7 +4,7 @@ setup-hooks:
 	@git config core.hooksPath .githooks
 
 up:
-	docker compose up --build
+	docker compose up --build -d
 
 down:
 	docker compose down

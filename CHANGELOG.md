@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chat response now include query category so client see how question classified.
 - Bulk upsert support for document and transaction embeddings, reducing embedding API calls during ingestion.
 - bulk upsert for doc/transaction embeddings, cuts embedding API calls during ingestion.
+- Ingestion now caches embeddings on disk, skipping re-embedding of unchanged content on repeat runs.
+- Ingestion now caches embeddings on disk, skipping re-embedding of unchanged content on repeat runs.
 
 #### Changed
 - env vars for chat/embed model split per-provider (`OLLAMA_*`, `DEEPINFRA_*`) instead of shared `CHAT_MODEL`/`EMBED_MODEL`/`EMBED_DIM` — deployments must update `.env`.
@@ -22,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Privacy/security/data-handling questions now route to general FAQ answers instead of misclassification.
 - Vector store embedding backend now injectable for custom embedding providers.
 - QdrantService embeddings backend now injectable (custom embedding providers).
+- `make up` now runs containers detached (background) instead of attached.
+- `make up` now runs containers detached (background) instead of attached.
 
 #### Fixed
 - Privacy/security/data-handling questions now correctly answered as general FAQ instead of misclassified.
