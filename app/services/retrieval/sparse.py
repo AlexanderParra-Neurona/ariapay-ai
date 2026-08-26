@@ -25,7 +25,13 @@ class SparseRetriever:
         while True:
             batch, offset = qdrant_service.client.scroll(
                 qdrant_service.collection_name,
-                scroll_filter=Filter(must=[FieldCondition(key="metadata.type", match=MatchValue(value="doc"))]),
+                scroll_filter=Filter(
+                    must=[
+                        FieldCondition(
+                            key="metadata.type", match=MatchValue(value="doc")
+                        )
+                    ]
+                ),
                 limit=1000,
                 offset=offset,
                 with_payload=True,

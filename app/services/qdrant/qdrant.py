@@ -39,14 +39,22 @@ class QdrantService:
         self._client.create_collection(
             collection_name=COLLECTION_NAME,
             vectors_config={
-                DOCS_VECTOR: VectorParams(size=settings.EMBED_DIM, distance=Distance.COSINE),
-                TRANSACTIONS_VECTOR: VectorParams(size=settings.EMBED_DIM, distance=Distance.COSINE),
+                DOCS_VECTOR: VectorParams(
+                    size=settings.EMBED_DIM, distance=Distance.COSINE
+                ),
+                TRANSACTIONS_VECTOR: VectorParams(
+                    size=settings.EMBED_DIM, distance=Distance.COSINE
+                ),
             },
         )
 
     def _verify_schema(self) -> None:
         vectors = self._client.get_collection(COLLECTION_NAME).config.params.vectors
-        if not isinstance(vectors, dict) or DOCS_VECTOR not in vectors or TRANSACTIONS_VECTOR not in vectors:
+        if (
+            not isinstance(vectors, dict)
+            or DOCS_VECTOR not in vectors
+            or TRANSACTIONS_VECTOR not in vectors
+        ):
             raise RuntimeError(
                 f"Collection '{COLLECTION_NAME}' exists with an incompatible schema "
                 f"(expected named vectors '{DOCS_VECTOR}' and '{TRANSACTIONS_VECTOR}'). "
@@ -66,7 +74,9 @@ class QdrantService:
         point_id = self._point_id(f"{source}:{heading}")
         self._docs_store.add_documents([doc], ids=[point_id])
 
-    def upsert_transaction(self, merchant_name: str, category: str, price: float, timestamp: str) -> None:
+    def upsert_transaction(
+        self, merchant_name: str, category: str, price: float, timestamp: str
+    ) -> None:
         text = f"{merchant_name} ({category}) - Rp{price:,.0f} on {timestamp}"
         doc = Document(
             page_content=text,
@@ -84,13 +94,17 @@ class QdrantService:
     def similarity_search(self, query: str, k: int = 4) -> list[Document]:
         return self._docs_store.similarity_search(query, k=k)
 
-    def similarity_search_with_score(self, query: str, k: int = 4) -> list[tuple[Document, float]]:
+    def similarity_search_with_score(
+        self, query: str, k: int = 4
+    ) -> list[tuple[Document, float]]:
         return self._docs_store.similarity_search_with_score(query, k=k)
 
     def similarity_search_transactions(self, query: str, k: int = 4) -> list[Document]:
         return self._transactions_store.similarity_search(query, k=k)
 
-    def similarity_search_transactions_with_score(self, query: str, k: int = 4) -> list[tuple[Document, float]]:
+    def similarity_search_transactions_with_score(
+        self, query: str, k: int = 4
+    ) -> list[tuple[Document, float]]:
         return self._transactions_store.similarity_search_with_score(query, k=k)
 
     @property

@@ -16,7 +16,9 @@ Classify the user's message into exactly one category:
 
 Respond with only the category label, nothing else. Valid labels: general_faq, account_profile, transaction_history, out_of_scope."""
 
-_LABEL_PATTERN = re.compile(r"general_faq|account_profile|transaction_history|out_of_scope")
+_LABEL_PATTERN = re.compile(
+    r"general_faq|account_profile|transaction_history|out_of_scope"
+)
 
 
 class QueryClassifier:
@@ -30,13 +32,19 @@ class QueryClassifier:
         ]
         raw = self._llm_service.chat(messages)
         category = self._parse(raw)
-        logger.info("classify question=%r raw=%r category=%s", question, raw, category.value)
+        logger.info(
+            "classify question=%r raw=%r category=%s", question, raw, category.value
+        )
         return category
 
     @staticmethod
     def _parse(raw: str) -> QueryCategory:
         match = _LABEL_PATTERN.search(raw.strip().lower())
         if not match:
-            logger.warning("classify_unparseable raw=%r fallback=%s", raw, QueryCategory.OUT_OF_SCOPE.value)
+            logger.warning(
+                "classify_unparseable raw=%r fallback=%s",
+                raw,
+                QueryCategory.OUT_OF_SCOPE.value,
+            )
             return QueryCategory.OUT_OF_SCOPE
         return QueryCategory(match.group(0))

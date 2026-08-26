@@ -28,7 +28,10 @@ class StubLLMService(LLMService):
         ("General_FAQ", QueryCategory.GENERAL_FAQ),
         ("  transaction_history\n", QueryCategory.TRANSACTION_HISTORY),
         ("Category: out_of_scope.", QueryCategory.OUT_OF_SCOPE),
-        ("sure, this is a transaction_history question", QueryCategory.TRANSACTION_HISTORY),
+        (
+            "sure, this is a transaction_history question",
+            QueryCategory.TRANSACTION_HISTORY,
+        ),
     ],
 )
 def test_classify_labels(reply: str, expected: QueryCategory) -> None:
@@ -52,7 +55,10 @@ def test_classify_sends_question_as_user_message() -> None:
     classifier.classify("how do I top up my wallet?")
 
     assert stub.last_messages is not None
-    assert stub.last_messages[-1] == {"role": "user", "content": "how do I top up my wallet?"}
+    assert stub.last_messages[-1] == {
+        "role": "user",
+        "content": "how do I top up my wallet?",
+    }
     assert stub.last_messages[0]["role"] == "system"
 
 

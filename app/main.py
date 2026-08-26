@@ -4,7 +4,13 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from app.logging_config import setup_logging
-from app.services.ariapay_service import AriapayAPIError, AriapayAuthError, get_me, login, verify_passcode
+from app.services.ariapay_service import (
+    AriapayAPIError,
+    AriapayAuthError,
+    get_me,
+    login,
+    verify_passcode,
+)
 from app.services.classification import QueryCategory, get_query_classifier
 from app.services.llm import get_llm_service
 from app.services.retrieval import get_hybrid_retriever
@@ -14,9 +20,7 @@ logger = logging.getLogger("ariabot.api")
 
 app = FastAPI(title="ariabot")
 
-OUT_OF_SCOPE_ANSWER = (
-    "Sorry, I can't help with that. I can answer questions about Ariapay or your account balance and transactions."
-)
+OUT_OF_SCOPE_ANSWER = "Sorry, I can't help with that. I can answer questions about Ariapay or your account balance and transactions."
 
 
 class ChatRequest(BaseModel):
@@ -72,7 +76,9 @@ def _answer_from_transactions(question: str) -> str:
 
 def _format_me_answer(user: dict) -> str:
     cards = user.get("cards") or []
-    card_lines = [f"- {c['card_network']} {c['number']} ({c['card_type']})" for c in cards]
+    card_lines = [
+        f"- {c['card_network']} {c['number']} ({c['card_type']})" for c in cards
+    ]
     lines = [
         f"Name: {user['first_name']} {user['last_name']}",
         f"Email: {user['email']}",
@@ -102,34 +108,49 @@ async def auth_login(req: LoginRequest):
         logger.error("call=/auth/login result=api_error detail=%s", e)
         raise HTTPException(status_code=502, detail=str(e))
     logger.info("call=/auth/login result=success")
-    return LoginResponse(access_token=token["access_token"], refresh_token=token["refresh_token"])
+    return LoginResponse(
+        access_token=token["access_token"], refresh_token=token["refresh_token"]
+    )
 
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
-    logger.info("call=/chat question=%r authenticated=%s", req.question, bool(req.access_token))
+    logger.info(
+        "call=/chat question=%r authenticated=%s", req.question, bool(req.access_token)
+    )
     category = get_query_classifier().classify(req.question)
     logger.info("call=/chat category=%s", category.value)
 
     if category == QueryCategory.ACCOUNT_PROFILE:
         if not req.access_token:
             logger.info("call=/chat result=unauthenticated")
-            return ChatResponse(answer="Please sign in to view your account details.", short_circuit=True)
+            return ChatResponse(
+                answer="Please sign in to view your account details.",
+                short_circuit=True,
+            )
         try:
             user = await get_me(req.access_token)
         except AriapayAuthError:
             logger.warning("call=/chat result=session_expired")
-            return ChatResponse(answer="Your session has expired. Please sign in again.", short_circuit=True)
+            return ChatResponse(
+                answer="Your session has expired. Please sign in again.",
+                short_circuit=True,
+            )
         except AriapayAPIError as e:
             logger.error("call=/chat result=api_error detail=%s", e)
-            return ChatResponse(answer="Sorry, I couldn't fetch your account details right now.", short_circuit=True)
+            return ChatResponse(
+                answer="Sorry, I couldn't fetch your account details right now.",
+                short_circuit=True,
+            )
         logger.info("call=/chat result=user_data_success")
         return ChatResponse(answer=_format_me_answer(user), short_circuit=True)
 
     if category == QueryCategory.TRANSACTION_HISTORY:
         if not req.access_token:
             logger.info("call=/chat result=unauthenticated")
-            return ChatResponse(answer="Please sign in to view your transactions.", short_circuit=True)
+            return ChatResponse(
+                answer="Please sign in to view your transactions.", short_circuit=True
+            )
         answer = _answer_from_transactions(req.question)
         logger.info("call=/chat result=transaction_answer")
         return ChatResponse(answer=answer, short_circuit=True)
