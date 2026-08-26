@@ -1,6 +1,7 @@
 import hashlib
 
 from langchain_core.documents import Document
+from langchain_core.embeddings import Embeddings
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient as _QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
@@ -14,9 +15,9 @@ TRANSACTIONS_VECTOR = "transactions"
 
 
 class QdrantService:
-    def __init__(self) -> None:
+    def __init__(self, embeddings: Embeddings | None = None) -> None:
         self._client = _QdrantClient(url=settings.QDRANT_URL)
-        self._embeddings = LLMServiceEmbeddings(get_llm_service())
+        self._embeddings = embeddings or LLMServiceEmbeddings(get_llm_service())
         self._ensure_collection()
         self._docs_store = QdrantVectorStore(
             client=self._client,
@@ -66,29 +67,49 @@ class QdrantService:
         return hashlib.sha256(normalized.encode()).hexdigest()[:32]
 
     def upsert_doc_chunk(self, source: str, heading: str, text: str) -> None:
-        doc = Document(
-            page_content=f"{heading}\n\n{text}" if heading else text,
-            metadata={"type": "doc", "source": source, "heading": heading},
-        )
-        point_id = self._point_id(f"{source}:{heading}")
-        self._docs_store.add_documents([doc], ids=[point_id])
+        self.upsert_doc_chunks([(source, heading, text)])
+
+    def upsert_doc_chunks(self, chunks: list[tuple[str, str, str]]) -> None:
+        if not chunks:
+            return
+        docs = [
+            Document(
+                page_content=f"{heading}\n\n{text}" if heading else text,
+                metadata={"type": "doc", "source": source, "heading": heading},
+            )
+            for source, heading, text in chunks
+        ]
+        ids = [self._point_id(f"{source}:{heading}") for source, heading, _ in chunks]
+        self._docs_store.add_documents(docs, ids=ids)
 
     def upsert_transaction(
         self, merchant_name: str, category: str, price: float, timestamp: str
     ) -> None:
-        text = f"{merchant_name} ({category}) - Rp{price:,.0f} on {timestamp}"
-        doc = Document(
-            page_content=text,
-            metadata={
-                "type": "transaction",
-                "merchant_name": merchant_name,
-                "category": category,
-                "price": price,
-                "timestamp": timestamp,
-            },
-        )
-        point_id = self._point_id(f"{merchant_name}:{timestamp}")
-        self._transactions_store.add_documents([doc], ids=[point_id])
+        self.upsert_transactions([(merchant_name, category, price, timestamp)])
+
+    def upsert_transactions(
+        self, transactions: list[tuple[str, str, float, str]]
+    ) -> None:
+        if not transactions:
+            return
+        docs = [
+            Document(
+                page_content=f"{merchant_name} ({category}) - Rp{price:,.0f} on {timestamp}",
+                metadata={
+                    "type": "transaction",
+                    "merchant_name": merchant_name,
+                    "category": category,
+                    "price": price,
+                    "timestamp": timestamp,
+                },
+            )
+            for merchant_name, category, price, timestamp in transactions
+        ]
+        ids = [
+            self._point_id(f"{merchant_name}:{timestamp}")
+            for merchant_name, _, _, timestamp in transactions
+        ]
+        self._transactions_store.add_documents(docs, ids=ids)
 
     def similarity_search(self, query: str, k: int = 4) -> list[Document]:
         return self._docs_store.similarity_search(query, k=k)

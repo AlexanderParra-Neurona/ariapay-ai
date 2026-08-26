@@ -13,6 +13,9 @@ class StubLLMService(LLMService):
     def embed(self, text: str) -> list[float]:
         raise NotImplementedError
 
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        raise NotImplementedError
+
     def chat(self, messages: list[dict[str, str]]) -> str:
         self.last_messages = messages
         return self._reply

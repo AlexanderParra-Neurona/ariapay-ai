@@ -7,6 +7,9 @@ class LLMService(ABC):
     def embed(self, text: str) -> list[float]: ...
 
     @abstractmethod
+    def embed_documents(self, texts: list[str]) -> list[list[float]]: ...
+
+    @abstractmethod
     def chat(self, messages: list[dict[str, str]]) -> str: ...
 
 
@@ -18,6 +21,9 @@ class LangchainLLMService(LLMService):
 
     def embed(self, text: str) -> list[float]:
         return self._embeddings.embed_query(text)
+
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return self._embeddings.embed_documents(texts)
 
     def chat(self, messages: list[dict[str, str]]) -> str:
         resp = self._chat.invoke(messages)

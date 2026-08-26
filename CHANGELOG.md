@@ -12,15 +12,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Added
 - DeepInfra now selectable as LLM provider alongside Ollama, via `LLM_PROVIDER=deepinfra`.
 - Chat response now include query category so client see how question classified.
+- Bulk upsert support for document and transaction embeddings, reducing embedding API calls during ingestion.
+- bulk upsert for doc/transaction embeddings, cuts embedding API calls during ingestion.
 
 #### Changed
 - env vars for chat/embed model split per-provider (`OLLAMA_*`, `DEEPINFRA_*`) instead of shared `CHAT_MODEL`/`EMBED_MODEL`/`EMBED_DIM` — deployments must update `.env`.
 - Move embedding service module from qdrant package into llm package, no user-facing behavior change
 - UI display category tag above answer text in chat response.
 - Privacy/security/data-handling questions now route to general FAQ answers instead of misclassification.
+- Vector store embedding backend now injectable for custom embedding providers.
+- QdrantService embeddings backend now injectable (custom embedding providers).
 
 #### Fixed
 - Privacy/security/data-handling questions now correctly answered as general FAQ instead of misclassified.
+- privacy/security/data-handling questions now route to general FAQ instead of misclassified.
 
 ### 2026-08-24
 
