@@ -6,8 +6,7 @@ from qdrant_client import QdrantClient as _QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 
 from app.config import settings
-from app.services.llm import get_llm_service
-from app.services.qdrant.embeddings import LLMServiceEmbeddings
+from app.services.llm import LLMServiceEmbeddings, get_llm_service
 
 COLLECTION_NAME = settings.QDRANT_COLLECTION
 DOCS_VECTOR = "docs"

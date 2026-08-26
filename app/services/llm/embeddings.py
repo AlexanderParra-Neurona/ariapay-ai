@@ -1,6 +1,6 @@
 from langchain_core.embeddings import Embeddings
 
-from app.services.llm import LLMService
+from app.services.llm.base import LLMService
 
 
 class LLMServiceEmbeddings(Embeddings):
