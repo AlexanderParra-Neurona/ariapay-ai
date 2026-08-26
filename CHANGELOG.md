@@ -11,10 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Added
 - DeepInfra now selectable as LLM provider alongside Ollama, via `LLM_PROVIDER=deepinfra`.
+- Chat response now include query category so client see how question classified.
 
 #### Changed
 - env vars for chat/embed model split per-provider (`OLLAMA_*`, `DEEPINFRA_*`) instead of shared `CHAT_MODEL`/`EMBED_MODEL`/`EMBED_DIM` — deployments must update `.env`.
 - Move embedding service module from qdrant package into llm package, no user-facing behavior change
+- UI display category tag above answer text in chat response.
 
 ### 2026-08-24
 

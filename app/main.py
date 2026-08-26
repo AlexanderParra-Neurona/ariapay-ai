@@ -31,6 +31,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     short_circuit: bool
+    category: QueryCategory
 
 
 class LoginRequest(BaseModel):
@@ -127,6 +128,7 @@ async def chat(req: ChatRequest):
             return ChatResponse(
                 answer="Please sign in to view your account details.",
                 short_circuit=True,
+                category=category,
             )
         try:
             user = await get_me(req.access_token)
@@ -135,30 +137,38 @@ async def chat(req: ChatRequest):
             return ChatResponse(
                 answer="Your session has expired. Please sign in again.",
                 short_circuit=True,
+                category=category,
             )
         except AriapayAPIError as e:
             logger.error("call=/chat result=api_error detail=%s", e)
             return ChatResponse(
                 answer="Sorry, I couldn't fetch your account details right now.",
                 short_circuit=True,
+                category=category,
             )
         logger.info("call=/chat result=user_data_success")
-        return ChatResponse(answer=_format_me_answer(user), short_circuit=True)
+        return ChatResponse(
+            answer=_format_me_answer(user), short_circuit=True, category=category
+        )
 
     if category == QueryCategory.TRANSACTION_HISTORY:
         if not req.access_token:
             logger.info("call=/chat result=unauthenticated")
             return ChatResponse(
-                answer="Please sign in to view your transactions.", short_circuit=True
+                answer="Please sign in to view your transactions.",
+                short_circuit=True,
+                category=category,
             )
         answer = _answer_from_transactions(req.question)
         logger.info("call=/chat result=transaction_answer")
-        return ChatResponse(answer=answer, short_circuit=True)
+        return ChatResponse(answer=answer, short_circuit=True, category=category)
 
     if category == QueryCategory.OUT_OF_SCOPE:
         logger.info("call=/chat result=out_of_scope")
-        return ChatResponse(answer=OUT_OF_SCOPE_ANSWER, short_circuit=True)
+        return ChatResponse(
+            answer=OUT_OF_SCOPE_ANSWER, short_circuit=True, category=category
+        )
 
     answer = _answer_from_docs(req.question)
     logger.info("call=/chat result=doc_answer")
-    return ChatResponse(answer=answer, short_circuit=False)
+    return ChatResponse(answer=answer, short_circuit=False, category=category)
