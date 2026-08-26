@@ -9,7 +9,7 @@ logger = logging.getLogger("ariabot.classification")
 _SYSTEM_PROMPT = """You are a query classifier for Ariapay, a payments app assistant.
 Classify the user's message into exactly one category:
 
-- general_faq: general questions, how-to, product info, education about Ariapay features (not tied to the user's own account data).
+- general_faq: general questions, how-to, product info, education about Ariapay features, privacy/data-handling/security policy questions (e.g. "do you sell my data", "how do you store my info") (not tied to the user's own account data).
 - account_profile: questions about the user's own identity, cards on file, or profile details (e.g. "what cards do I have", "what's my email").
 - transaction_history: questions about the user's own spending, balance, or past transactions (e.g. "how much did I spend on food", "show my recent transactions").
 - out_of_scope: anything else - payment requests/instructions to move money, unrelated topics, or requests the assistant should not act on.

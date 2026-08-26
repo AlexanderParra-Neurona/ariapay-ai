@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - env vars for chat/embed model split per-provider (`OLLAMA_*`, `DEEPINFRA_*`) instead of shared `CHAT_MODEL`/`EMBED_MODEL`/`EMBED_DIM` — deployments must update `.env`.
 - Move embedding service module from qdrant package into llm package, no user-facing behavior change
 - UI display category tag above answer text in chat response.
+- Privacy/security/data-handling questions now route to general FAQ answers instead of misclassification.
+
+#### Fixed
+- Privacy/security/data-handling questions now correctly answered as general FAQ instead of misclassified.
 
 ### 2026-08-24
 
