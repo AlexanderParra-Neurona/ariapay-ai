@@ -50,17 +50,17 @@ class Settings(BaseSettings):
     @property
     def CHAT_MODEL(self) -> str:
         return (
-            self.OLLAMA_CHAT_MODEL
+            f"ollama/{self.OLLAMA_CHAT_MODEL}"
             if self.LLM_PROVIDER == "ollama"
-            else self.DEEPINFRA_CHAT_MODEL
+            else f"deepinfra/{self.DEEPINFRA_CHAT_MODEL}"
         )
 
     @property
     def EMBED_MODEL(self) -> str:
         return (
-            self.OLLAMA_EMBED_MODEL
+            f"ollama/{self.OLLAMA_EMBED_MODEL}"
             if self.LLM_PROVIDER == "ollama"
-            else self.DEEPINFRA_EMBED_MODEL
+            else f"deepinfra/{self.DEEPINFRA_EMBED_MODEL}"
         )
 
     @property

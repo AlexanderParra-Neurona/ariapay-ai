@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Transaction Q&A now show concise summary plus itemized bullet list, instead of raw LLM-only answer.
 - transaction spend summaries now computed by exact sum of matched transactions instead of LLM-generated text, giving deterministic totals.
 - transaction queries now filter by classified spending category before summarizing.
+- Chat/embedding calls now route through LiteLLM instead of provider-specific LangChain clients.
+- Model config strings now include provider prefix (e.g. "ollama/...", "deepinfra/...").
 
 #### Fixed
 - Qdrant init container and app container now correctly read LLM_PROVIDER from shared `.llm-provider` file instead of relying on unset/inconsistent env var.
