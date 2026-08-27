@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-08-27
+
+#### Added
+- Transaction queries now return full matching history (not just top-k) when user ask for "all" or category totals.
+
+#### Changed
+- Transaction search take scope param, route full-history vs limited results differently.
+
 ### 2026-08-26
 
 #### Added

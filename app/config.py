@@ -27,6 +27,7 @@ class Settings(BaseSettings):
 
     RETRIEVAL_TOP_K: int = 5
     RETRIEVAL_CANDIDATE_POOL: int = 20
+    TRANSACTIONS_MAX_ALL: int = 200
 
     LOG_DIR: str = "logs"
     LOG_LEVEL: str = "INFO"

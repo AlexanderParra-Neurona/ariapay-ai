@@ -11,7 +11,11 @@ from app.services.ariapay_service import (
     login,
     verify_passcode,
 )
-from app.services.classification import QueryCategory, get_query_classifier
+from app.services.classification import (
+    QueryCategory,
+    get_query_classifier,
+    get_transaction_scope_classifier,
+)
 from app.services.llm import get_llm_service
 from app.services.retrieval import get_hybrid_retriever
 
@@ -61,7 +65,8 @@ def _answer_from_docs(question: str) -> str:
 
 
 def _answer_from_transactions(question: str) -> str:
-    docs = get_hybrid_retriever().search_transactions(question)
+    scope = get_transaction_scope_classifier().classify(question)
+    docs = get_hybrid_retriever().search_transactions(question, scope=scope)
     if not docs:
         return "I couldn't find any transactions matching that."
 

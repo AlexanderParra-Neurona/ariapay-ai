@@ -4,7 +4,13 @@ from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_qdrant import QdrantVectorStore
 from qdrant_client import QdrantClient as _QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
+from qdrant_client.http.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    MatchValue,
+    VectorParams,
+)
 
 from app.config import settings
 from app.services.llm import LLMServiceEmbeddings, get_llm_service
@@ -126,6 +132,42 @@ class QdrantService:
         self, query: str, k: int = 4
     ) -> list[tuple[Document, float]]:
         return self._transactions_store.similarity_search_with_score(query, k=k)
+
+    def get_all_transactions(
+        self, category: str | None = None, max_results: int = 200
+    ) -> list[Document]:
+        must = [
+            FieldCondition(key="metadata.type", match=MatchValue(value="transaction"))
+        ]
+        if category is not None:
+            must.append(
+                FieldCondition(
+                    key="metadata.category", match=MatchValue(value=category)
+                )
+            )
+
+        docs: list[Document] = []
+        offset = None
+        while len(docs) < max_results:
+            batch, offset = self._client.scroll(
+                self.collection_name,
+                scroll_filter=Filter(must=must),
+                limit=min(1000, max_results - len(docs)),
+                offset=offset,
+                with_payload=True,
+                with_vectors=False,
+            )
+            for point in batch:
+                payload = point.payload or {}
+                docs.append(
+                    Document(
+                        page_content=payload.get("page_content", ""),
+                        metadata=payload.get("metadata", {}),
+                    )
+                )
+            if offset is None:
+                break
+        return docs[:max_results]
 
     @property
     def client(self) -> _QdrantClient:

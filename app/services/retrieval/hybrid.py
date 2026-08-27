@@ -3,6 +3,7 @@ import logging
 from langchain_core.documents import Document
 
 from app.config import settings
+from app.services.classification.types import TransactionScope
 from app.services.qdrant.qdrant import QdrantService
 from app.services.retrieval.fusion import rrf_fuse
 from app.services.retrieval.sparse import SparseRetriever
@@ -41,8 +42,23 @@ class HybridRetriever:
         return docs
 
     def search_transactions(
-        self, query: str, top_k: int | None = None
+        self,
+        query: str,
+        scope: TransactionScope | None = None,
+        top_k: int | None = None,
     ) -> list[Document]:
+        if scope is not None and scope.wants_all:
+            docs = self._qdrant_service.get_all_transactions(
+                category=scope.category, max_results=settings.TRANSACTIONS_MAX_ALL
+            )
+            logger.info(
+                "hybrid_search_transactions_all query=%r category=%s result_count=%d",
+                query,
+                scope.category,
+                len(docs),
+            )
+            return docs
+
         top_k = top_k or settings.RETRIEVAL_TOP_K
         hits = self._qdrant_service.similarity_search_transactions_with_score(
             query, k=top_k
