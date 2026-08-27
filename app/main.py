@@ -1,6 +1,8 @@
 import logging
+from datetime import datetime
 
 from fastapi import FastAPI, HTTPException
+from langchain_core.documents import Document
 from pydantic import BaseModel
 
 from app.logging_config import setup_logging
@@ -64,20 +66,43 @@ def _answer_from_docs(question: str) -> str:
     return get_llm_service().chat([{"role": "user", "content": prompt}])
 
 
-def _answer_from_transactions(question: str) -> str:
+def _format_timestamp(timestamp: str) -> str:
+    try:
+        dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    except ValueError:
+        return timestamp
+    return dt.strftime("%b %-d, %Y, %-I:%M %p")
+
+
+def _transaction_bullets(docs: list[Document]) -> str:
+    lines = [
+        "- {merchant} - Rp{price:,.0f} on {timestamp}".format(
+            merchant=d.metadata.get("merchant_name", "Unknown"),
+            price=d.metadata.get("price", 0.0),
+            timestamp=_format_timestamp(d.metadata.get("timestamp", "")),
+        )
+        for d in docs
+    ]
+    return "\n".join(lines)
+
+
+def _answer_from_transactions(question: str) -> str | None:
     scope = get_transaction_scope_classifier().classify(question)
     docs = get_hybrid_retriever().search_transactions(question, scope=scope)
     if not docs:
-        return "I couldn't find any transactions matching that."
+        return None
 
     context_block = "\n".join(d.page_content for d in docs)
     prompt = (
-        "Answer the question using only the transactions listed below. Be concise, "
-        "sum amounts if asked for a total.\n\n"
+        "Write a short 1-sentence summary of the total spent, answering the "
+        "question below, using only the transactions listed. Sum amounts if "
+        "asked for a total. Do not list individual transactions.\n\n"
         f"Transactions:\n{context_block}\n\n"
-        f"Question: {question}\n\nAnswer:"
+        f"Question: {question}\n\nSummary:"
     )
-    return get_llm_service().chat([{"role": "user", "content": prompt}])
+    summary = get_llm_service().chat([{"role": "user", "content": prompt}])
+    bullets = _transaction_bullets(docs)
+    return f"{summary}\n\n{bullets}"
 
 
 def _format_me_answer(user: dict) -> str:
@@ -165,6 +190,13 @@ async def chat(req: ChatRequest):
                 category=category,
             )
         answer = _answer_from_transactions(req.question)
+        if answer is None:
+            logger.info("call=/chat result=transaction_no_match")
+            return ChatResponse(
+                answer="I couldn't find any transactions matching that.",
+                short_circuit=True,
+                category=category,
+            )
         logger.info("call=/chat result=transaction_answer")
         return ChatResponse(answer=answer, short_circuit=True, category=category)
 

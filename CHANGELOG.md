@@ -14,9 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Changed
 - Transaction search take scope param, route full-history vs limited results differently.
+- Transaction Q&A now show concise summary plus itemized bullet list, instead of raw LLM-only answer.
 
 #### Fixed
 - Qdrant init container and app container now correctly read LLM_PROVIDER from shared `.llm-provider` file instead of relying on unset/inconsistent env var.
+- no-match transaction queries now return proper "no transactions found" message instead of leaking None into answer.
 
 ### 2026-08-26
 
