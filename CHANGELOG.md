@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Changed
 - Transaction search take scope param, route full-history vs limited results differently.
 - Transaction Q&A now show concise summary plus itemized bullet list, instead of raw LLM-only answer.
+- transaction spend summaries now computed by exact sum of matched transactions instead of LLM-generated text, giving deterministic totals.
+- transaction queries now filter by classified spending category before summarizing.
 
 #### Fixed
 - Qdrant init container and app container now correctly read LLM_PROVIDER from shared `.llm-provider` file instead of relying on unset/inconsistent env var.

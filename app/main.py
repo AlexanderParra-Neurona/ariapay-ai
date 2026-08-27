@@ -89,18 +89,13 @@ def _transaction_bullets(docs: list[Document]) -> str:
 def _answer_from_transactions(question: str) -> str | None:
     scope = get_transaction_scope_classifier().classify(question)
     docs = get_hybrid_retriever().search_transactions(question, scope=scope)
+    if scope is not None and scope.category is not None:
+        docs = [d for d in docs if d.metadata.get("category") == scope.category]
     if not docs:
         return None
 
-    context_block = "\n".join(d.page_content for d in docs)
-    prompt = (
-        "Write a short 1-sentence summary of the total spent, answering the "
-        "question below, using only the transactions listed. Sum amounts if "
-        "asked for a total. Do not list individual transactions.\n\n"
-        f"Transactions:\n{context_block}\n\n"
-        f"Question: {question}\n\nSummary:"
-    )
-    summary = get_llm_service().chat([{"role": "user", "content": prompt}])
+    total = sum(d.metadata.get("price", 0.0) for d in docs)
+    summary = f"You spent a total of Rp{total:,.0f} across {len(docs)} transaction(s)."
     bullets = _transaction_bullets(docs)
     return f"{summary}\n\n{bullets}"
 
