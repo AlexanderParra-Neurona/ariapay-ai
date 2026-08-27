@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
 
+LLM_PROVIDER=$(cat /.llm-provider)
+
 if [ "$LLM_PROVIDER" = "deepinfra" ]; then
   EMBED_DIM="$DEEPINFRA_EMBED_DIM"
 else

@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Changed
 - Transaction search take scope param, route full-history vs limited results differently.
 
+#### Fixed
+- Qdrant init container and app container now correctly read LLM_PROVIDER from shared `.llm-provider` file instead of relying on unset/inconsistent env var.
+
 ### 2026-08-26
 
 #### Added
