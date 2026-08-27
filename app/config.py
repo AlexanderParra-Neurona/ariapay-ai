@@ -1,4 +1,19 @@
+from pathlib import Path
+
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _read_llm_provider(default: str = "ollama") -> str:
+    path = _REPO_ROOT / ".llm-provider"
+    if path.exists():
+        value = path.read_text().strip()
+        if value:
+            return value
+    return default
 
 
 class Settings(BaseSettings):
@@ -10,7 +25,7 @@ class Settings(BaseSettings):
     API_URL: str = "changeme"
     ARIAPAY_API_URL: str = "changeme"
 
-    LLM_PROVIDER: str = "ollama"
+    LLM_PROVIDER: str = Field(default_factory=_read_llm_provider)
 
     OLLAMA_URL: str = "changeme"
     OLLAMA_CHAT_MODEL: str = "changeme"
