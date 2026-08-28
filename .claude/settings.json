@@ -7,7 +7,7 @@
           {
             "type": "command",
             "if": "Bash(git commit*)",
-            "command": "bash \"$(git rev-parse --show-toplevel)/.claude/hooks/pre-commit-review.sh\"",
+            "command": "bash \"$(git rev-parse --show-toplevel)/.githooks/pre-commit-review.sh\"",
             "timeout": 180,
             "statusMessage": "Running pre-commit code review..."
           }
@@ -16,3 +16,4 @@
     ]
   }
 }
+

@@ -1,25 +1,32 @@
 import logging
+from datetime import datetime
 
 from fastapi import FastAPI, HTTPException
+from langchain_core.documents import Document
 from pydantic import BaseModel
 
 from app.logging_config import setup_logging
-from app.services.ariapay_service import AriapayAPIError, AriapayAuthError, get_me, login, verify_passcode
+from app.services.ariapay_service import (
+    AriapayAPIError,
+    AriapayAuthError,
+    get_me,
+    login,
+    verify_passcode,
+)
+from app.services.classification import (
+    QueryCategory,
+    get_query_classifier,
+    get_transaction_scope_classifier,
+)
+from app.services.llm import get_llm_service
+from app.services.retrieval import get_hybrid_retriever
 
 setup_logging()
 logger = logging.getLogger("ariabot.api")
 
 app = FastAPI(title="ariabot")
 
-USER_DATA_KEYWORDS = (
-    "my profile",
-    "my account",
-    "my card",
-    "my cards",
-    "my balance",
-    "my email",
-    "my phone number",
-)
+OUT_OF_SCOPE_ANSWER = "Sorry, I can't help with that. I can answer questions about Ariapay or your account balance and transactions."
 
 
 class ChatRequest(BaseModel):
@@ -30,6 +37,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     short_circuit: bool
+    category: QueryCategory
 
 
 class LoginRequest(BaseModel):
@@ -44,14 +52,59 @@ class LoginResponse(BaseModel):
     refresh_token: str
 
 
-def _is_user_data_question(question: str) -> bool:
-    lowered = question.lower()
-    return any(keyword in lowered for keyword in USER_DATA_KEYWORDS)
+def _answer_from_docs(question: str) -> str:
+    docs = get_hybrid_retriever().search(question)
+    if not docs:
+        return "Sorry, I don't have information on that."
+
+    context_block = "\n\n".join(d.page_content for d in docs)
+    prompt = (
+        "Answer the question using only the context below. Be concise.\n\n"
+        f"Context:\n{context_block}\n\n"
+        f"Question: {question}\n\nAnswer:"
+    )
+    return get_llm_service().chat([{"role": "user", "content": prompt}])
+
+
+def _format_timestamp(timestamp: str) -> str:
+    try:
+        dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    except ValueError:
+        return timestamp
+    return dt.strftime("%b %-d, %Y, %-I:%M %p")
+
+
+def _transaction_bullets(docs: list[Document]) -> str:
+    lines = [
+        "- {merchant} - Rp{price:,.0f} on {timestamp}".format(
+            merchant=d.metadata.get("merchant_name", "Unknown"),
+            price=d.metadata.get("price", 0.0),
+            timestamp=_format_timestamp(d.metadata.get("timestamp", "")),
+        )
+        for d in docs
+    ]
+    return "\n".join(lines)
+
+
+def _answer_from_transactions(question: str) -> str | None:
+    scope = get_transaction_scope_classifier().classify(question)
+    docs = get_hybrid_retriever().search_transactions(question, scope=scope)
+    if scope is not None and scope.category is not None:
+        docs = [d for d in docs if d.metadata.get("category") == scope.category]
+    if not docs:
+        return None
+
+    total = sum(d.metadata.get("price", 0.0) for d in docs)
+    summary = f"You spent a total of Rp{total:,.0f} across {len(docs)} transaction(s)."
+    bullets = _transaction_bullets(docs)
+    return f"{summary}\n\n{bullets}"
 
 
 def _format_me_answer(user: dict) -> str:
     cards = user.get("cards") or []
-    card_lines = [f"- {c['card_network']} {c['number']} ({c['card_type']})" for c in cards]
+    card_lines = [
+        f"- {c['card_network']} {c['number']} ({c['card_type']})" for c in cards
+    ]
     lines = [
         f"Name: {user['first_name']} {user['last_name']}",
         f"Email: {user['email']}",
@@ -81,25 +134,73 @@ async def auth_login(req: LoginRequest):
         logger.error("call=/auth/login result=api_error detail=%s", e)
         raise HTTPException(status_code=502, detail=str(e))
     logger.info("call=/auth/login result=success")
-    return LoginResponse(access_token=token["access_token"], refresh_token=token["refresh_token"])
+    return LoginResponse(
+        access_token=token["access_token"], refresh_token=token["refresh_token"]
+    )
 
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
-    logger.info("call=/chat question=%r authenticated=%s", req.question, bool(req.access_token))
-    if _is_user_data_question(req.question):
+    logger.info(
+        "call=/chat question=%r authenticated=%s", req.question, bool(req.access_token)
+    )
+    category = get_query_classifier().classify(req.question)
+    logger.info("call=/chat category=%s", category.value)
+
+    if category == QueryCategory.ACCOUNT_PROFILE:
         if not req.access_token:
             logger.info("call=/chat result=unauthenticated")
-            return ChatResponse(answer="Please sign in to view your account details.", short_circuit=True)
+            return ChatResponse(
+                answer="Please sign in to view your account details.",
+                short_circuit=True,
+                category=category,
+            )
         try:
             user = await get_me(req.access_token)
         except AriapayAuthError:
             logger.warning("call=/chat result=session_expired")
-            return ChatResponse(answer="Your session has expired. Please sign in again.", short_circuit=True)
+            return ChatResponse(
+                answer="Your session has expired. Please sign in again.",
+                short_circuit=True,
+                category=category,
+            )
         except AriapayAPIError as e:
             logger.error("call=/chat result=api_error detail=%s", e)
-            return ChatResponse(answer="Sorry, I couldn't fetch your account details right now.", short_circuit=True)
+            return ChatResponse(
+                answer="Sorry, I couldn't fetch your account details right now.",
+                short_circuit=True,
+                category=category,
+            )
         logger.info("call=/chat result=user_data_success")
-        return ChatResponse(answer=_format_me_answer(user), short_circuit=True)
+        return ChatResponse(
+            answer=_format_me_answer(user), short_circuit=True, category=category
+        )
 
-    return ChatResponse(answer="Sorry, I don't have an answer for that yet.", short_circuit=False)
+    if category == QueryCategory.TRANSACTION_HISTORY:
+        if not req.access_token:
+            logger.info("call=/chat result=unauthenticated")
+            return ChatResponse(
+                answer="Please sign in to view your transactions.",
+                short_circuit=True,
+                category=category,
+            )
+        answer = _answer_from_transactions(req.question)
+        if answer is None:
+            logger.info("call=/chat result=transaction_no_match")
+            return ChatResponse(
+                answer="I couldn't find any transactions matching that.",
+                short_circuit=True,
+                category=category,
+            )
+        logger.info("call=/chat result=transaction_answer")
+        return ChatResponse(answer=answer, short_circuit=True, category=category)
+
+    if category == QueryCategory.OUT_OF_SCOPE:
+        logger.info("call=/chat result=out_of_scope")
+        return ChatResponse(
+            answer=OUT_OF_SCOPE_ANSWER, short_circuit=True, category=category
+        )
+
+    answer = _answer_from_docs(req.question)
+    logger.info("call=/chat result=doc_answer")
+    return ChatResponse(answer=answer, short_circuit=False, category=category)

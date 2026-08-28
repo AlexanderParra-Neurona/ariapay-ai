@@ -220,4 +220,12 @@ __marimo__/
 
 # Claude Code
 .claude/settings.local.json
-.claude/review-log.md
+
+# Docker bind-mounted data
+/ollama_data/
+
+# Embedding cache (survives container restarts, avoids re-embedding on ingest)
+/data/embed_cache/
+
+# pre-commit review hook
+.githooks/review-log.md

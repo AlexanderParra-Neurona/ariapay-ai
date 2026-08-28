@@ -1,10 +1,10 @@
-.PHONY: up down clean build logs dev redis ui seed seed-clear scrape faq all setup-hooks
+.PHONY: up down clean build logs dev redis ui seed seed-clear scrape faq ingest-qdrant all setup-hooks
 
 setup-hooks:
 	@git config core.hooksPath .githooks
 
 up:
-	docker compose up --build
+	docker compose up --build -d
 
 down:
 	docker compose down
@@ -41,3 +41,6 @@ scrape:
 
 faq:
 	uv run python scripts/generate_faq.py
+
+ingest-qdrant:
+	uv run python scripts/ingest_qdrant.py

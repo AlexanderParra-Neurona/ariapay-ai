@@ -7,6 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-08-27
+
+#### Added
+- Transaction queries now return full matching history (not just top-k) when user ask for "all" or category totals.
+
+#### Changed
+- Transaction search take scope param, route full-history vs limited results differently.
+- Transaction Q&A now show concise summary plus itemized bullet list, instead of raw LLM-only answer.
+- transaction spend summaries now computed by exact sum of matched transactions instead of LLM-generated text, giving deterministic totals.
+- transaction queries now filter by classified spending category before summarizing.
+- Chat/embedding calls now route through LiteLLM instead of provider-specific LangChain clients.
+- Model config strings now include provider prefix (e.g. "ollama/...", "deepinfra/...").
+
+#### Fixed
+- Qdrant init container and app container now correctly read LLM_PROVIDER from shared `.llm-provider` file instead of relying on unset/inconsistent env var.
+- no-match transaction queries now return proper "no transactions found" message instead of leaking None into answer.
+
+### 2026-08-26
+
+#### Added
+- DeepInfra now selectable as LLM provider alongside Ollama, via `LLM_PROVIDER=deepinfra`.
+- Chat response now include query category so client see how question classified.
+- Bulk upsert support for document and transaction embeddings, reducing embedding API calls during ingestion.
+- Ingestion now caches embeddings on disk, skipping re-embedding of unchanged content on repeat runs.
+
+#### Changed
+- env vars for chat/embed model split per-provider (`OLLAMA_*`, `DEEPINFRA_*`) instead of shared `CHAT_MODEL`/`EMBED_MODEL`/`EMBED_DIM` — deployments must update `.env`.
+- Move embedding service module from qdrant package into llm package, no user-facing behavior change
+- UI display category tag above answer text in chat response.
+- Vector store embedding backend now injectable for custom embedding providers.
+- `make up` now runs containers detached (background) instead of attached.
+
+#### Fixed
+- Privacy/security/data-handling questions now correctly answered as general FAQ instead of misclassified.
+
+### 2026-08-24
+
+#### Added
+- Sparse retrieval exploration notebook: BM25 baseline, late-interaction reranking, and RAGAS-based quality evaluation.
+- Pre-commit review hook now switches between Claude CLI or local Ollama model based on `.reviewer` config file, and drafts CHANGELOG.md entries from staged diffs.
+- New LLM-based query classifier routes chat questions into general FAQ, transaction, or out-of-scope buckets.
+- Out-of-scope questions now get canned decline reply instead of falling through to doc search.
+- Seed data now include new merchant transaction dataset (`transactions.json`)
+- Support transaction data alongside docs, enabling transaction-based search/queries.
+
+#### Changed
+- LLM backend is now pluggable via `LLM_PROVIDER` config instead of hardcoded to Ollama.
+- Pre-commit hook wired into `.claude/settings.json` as PreToolUse hook on `git commit`, gated by new `.reviewer` file (set to `claude`).
+- /chat account-data detection switch from keyword match to classifier-based routing.
+- Ollama data now bind-mounts to a local `./ollama_data` folder on host instead of an internal Docker volume, for easier local access/backup.
+- FAQ answers expand with more detail — fees change notice, refund policy, reseller/sublicense ban, data retention/deletion, account eligibility, termination/suspension rights, dispute jurisdiction, contact emails for legal/privacy
+- Qdrant collection now use two named vectors (docs, transactions) instead of single unnamed vector; existing collections need migration.
+
+#### Fixed
+- Sparse (BM25) retriever now filter scroll to doc-type points only, avoiding transaction data polluting keyword search results.
+
 ### 2026-08-21
 
 #### Changed
