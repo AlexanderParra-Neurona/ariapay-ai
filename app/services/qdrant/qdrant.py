@@ -42,6 +42,12 @@ class QdrantService:
         if self._client.collection_exists(COLLECTION_NAME):
             self._verify_schema()
             return
+        if settings.EMBED_DIM <= 0:
+            raise RuntimeError(
+                f"EMBED_DIM is {settings.EMBED_DIM} for LLM_PROVIDER="
+                f"'{settings.LLM_PROVIDER}'. Set OLLAMA_EMBED_DIM / "
+                "DEEPINFRA_EMBED_DIM in .env before creating the collection."
+            )
         self._client.create_collection(
             collection_name=COLLECTION_NAME,
             vectors_config={
@@ -64,7 +70,9 @@ class QdrantService:
             raise RuntimeError(
                 f"Collection '{COLLECTION_NAME}' exists with an incompatible schema "
                 f"(expected named vectors '{DOCS_VECTOR}' and '{TRANSACTIONS_VECTOR}'). "
-                "Drop the collection and re-run ingestion to migrate."
+                "Back up the collection, then migrate it to the new schema (e.g. "
+                "recreate under a new name and re-run ingestion, or use Qdrant's "
+                "snapshot/migration tools) before re-running ingestion."
             )
 
     @staticmethod

@@ -25,17 +25,22 @@ class Settings(BaseSettings):
     API_URL: str = "changeme"
     ARIAPAY_API_URL: str = "changeme"
 
+    LOGIN_PHONE_NUMBER: str = "changeme"
+    LOGIN_COUNTRY_CODE: str = "+62"
+    LOGIN_PASSWORD: str = "changeme"
+    LOGIN_PASSCODE: str = "changeme"
+
     LLM_PROVIDER: str = Field(default_factory=_read_llm_provider)
 
     OLLAMA_URL: str = "changeme"
     OLLAMA_CHAT_MODEL: str = "changeme"
     OLLAMA_EMBED_MODEL: str = "changeme"
-    OLLAMA_EMBED_DIM: int = 0
+    OLLAMA_EMBED_DIM: int = 4096
 
     DEEPINFRA_API_TOKEN: str = "changeme"
     DEEPINFRA_CHAT_MODEL: str = "changeme"
     DEEPINFRA_EMBED_MODEL: str = "changeme"
-    DEEPINFRA_EMBED_DIM: int = 0
+    DEEPINFRA_EMBED_DIM: int = 4096
 
     QDRANT_URL: str = "changeme"
     QDRANT_COLLECTION: str = "changeme"

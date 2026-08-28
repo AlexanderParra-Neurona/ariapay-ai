@@ -30,43 +30,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DeepInfra now selectable as LLM provider alongside Ollama, via `LLM_PROVIDER=deepinfra`.
 - Chat response now include query category so client see how question classified.
 - Bulk upsert support for document and transaction embeddings, reducing embedding API calls during ingestion.
-- bulk upsert for doc/transaction embeddings, cuts embedding API calls during ingestion.
-- Ingestion now caches embeddings on disk, skipping re-embedding of unchanged content on repeat runs.
 - Ingestion now caches embeddings on disk, skipping re-embedding of unchanged content on repeat runs.
 
 #### Changed
 - env vars for chat/embed model split per-provider (`OLLAMA_*`, `DEEPINFRA_*`) instead of shared `CHAT_MODEL`/`EMBED_MODEL`/`EMBED_DIM` — deployments must update `.env`.
 - Move embedding service module from qdrant package into llm package, no user-facing behavior change
 - UI display category tag above answer text in chat response.
-- Privacy/security/data-handling questions now route to general FAQ answers instead of misclassification.
 - Vector store embedding backend now injectable for custom embedding providers.
-- QdrantService embeddings backend now injectable (custom embedding providers).
-- `make up` now runs containers detached (background) instead of attached.
 - `make up` now runs containers detached (background) instead of attached.
 
 #### Fixed
 - Privacy/security/data-handling questions now correctly answered as general FAQ instead of misclassified.
-- privacy/security/data-handling questions now route to general FAQ instead of misclassified.
 
 ### 2026-08-24
 
 #### Added
 - Sparse retrieval exploration notebook: BM25 baseline, late-interaction reranking, and RAGAS-based quality evaluation.
 - Pre-commit review hook now switches between Claude CLI or local Ollama model based on `.reviewer` config file, and drafts CHANGELOG.md entries from staged diffs.
-- LLM-based query classifier route general FAQ, transaction, out-of-scope questions.
-- out-of-scope questions get canned decline answer instead of falling thru to doc search.
-- new LLM-based query classifier routes chat questions into general FAQ, transaction, or out-of-scope buckets.
-- out-of-scope questions now get canned decline reply instead of falling through to doc search.
+- New LLM-based query classifier routes chat questions into general FAQ, transaction, or out-of-scope buckets.
+- Out-of-scope questions now get canned decline reply instead of falling through to doc search.
 - Seed data now include new merchant transaction dataset (`transactions.json`)
 - Support transaction data alongside docs, enabling transaction-based search/queries.
 
 #### Changed
 - LLM backend is now pluggable via `LLM_PROVIDER` config instead of hardcoded to Ollama.
 - Pre-commit hook wired into `.claude/settings.json` as PreToolUse hook on `git commit`, gated by new `.reviewer` file (set to `claude`).
-- /chat use classifier instead of keyword match for account-data detection.
 - /chat account-data detection switch from keyword match to classifier-based routing.
-- Ollama data now bind-mounts to `./ollama_data` on host instead of named Docker volume, for easier local access/backup.
-- Ollama data now persists to a local `./ollama_data` folder on host instead of an internal Docker volume, for easier backup/access.
+- Ollama data now bind-mounts to a local `./ollama_data` folder on host instead of an internal Docker volume, for easier local access/backup.
 - FAQ answers expand with more detail — fees change notice, refund policy, reseller/sublicense ban, data retention/deletion, account eligibility, termination/suspension rights, dispute jurisdiction, contact emails for legal/privacy
 - Qdrant collection now use two named vectors (docs, transactions) instead of single unnamed vector; existing collections need migration.
 

@@ -11,18 +11,12 @@ def respond(message: str, history: list[dict], access_token: str) -> str:
     return f"`{data['category']}`\n\n{data['answer']}"
 
 
-LOGIN_PHONE_NUMBER = "81217641707"
-LOGIN_COUNTRY_CODE = "+62"
-LOGIN_PASSWORD = "lalA123_"
-LOGIN_PASSCODE = "111111"
-
-
 def login() -> tuple[str, str]:
     payload = {
-        "phone_number": LOGIN_PHONE_NUMBER,
-        "country_code": LOGIN_COUNTRY_CODE,
-        "password": LOGIN_PASSWORD,
-        "passcode": LOGIN_PASSCODE,
+        "phone_number": settings.LOGIN_PHONE_NUMBER,
+        "country_code": settings.LOGIN_COUNTRY_CODE,
+        "password": settings.LOGIN_PASSWORD,
+        "passcode": settings.LOGIN_PASSCODE,
     }
     resp = requests.post(f"{settings.API_URL}/auth/login", json=payload, timeout=30)
     if not resp.ok:
