@@ -14,7 +14,7 @@ LOG_FILE="$REPO_ROOT/.githooks/review-log.md"
 TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"
 
 REVIEWER_FILE="$REPO_ROOT/.reviewer"
-PROVIDER="claude"
+PROVIDER="ollama"
 if [ -f "$REVIEWER_FILE" ]; then
   PROVIDER="$(tr -d '[:space:]' < "$REVIEWER_FILE")"
 fi
@@ -147,18 +147,27 @@ else:
     day_start = day_end = None
 
 existing_by_cat = {}
-for cat in order:
-    m = re.search(rf"^#### {re.escape(cat)}\n", day_block, re.M)
-    if not m:
+header_matches = list(re.finditer(r"^#### (\w+)\n", day_block, re.M))
+for idx, m in enumerate(header_matches):
+    cat = m.group(1)
+    if cat not in order:
         continue
     b_start = m.end()
-    next_cat = re.search(r"^#### ", day_block[b_start:], re.M)
-    b_end = b_start + next_cat.start() if next_cat else len(day_block)
+    b_end = header_matches[idx + 1].start() if idx + 1 < len(header_matches) else len(day_block)
     bullets = [l for l in day_block[b_start:b_end].splitlines() if l.strip()]
-    existing_by_cat[cat] = bullets
+    existing_by_cat.setdefault(cat, []).extend(bullets)
 
 for cat, descs in entries.items():
     existing_by_cat.setdefault(cat, []).extend(f"- {d}" for d in descs)
+
+for cat, bullets in existing_by_cat.items():
+    seen = set()
+    deduped = []
+    for b in bullets:
+        if b not in seen:
+            seen.add(b)
+            deduped.append(b)
+    existing_by_cat[cat] = deduped
 
 day_block = "".join(
     f"#### {cat}\n" + "\n".join(existing_by_cat[cat]) + "\n\n"

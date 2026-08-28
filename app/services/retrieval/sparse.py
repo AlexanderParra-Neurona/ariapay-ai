@@ -57,5 +57,7 @@ class SparseRetriever:
         if self._bm25 is None:
             return []
         scores = self._bm25.get_scores(_tokenize(query))
-        ranked = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
+        ranked = sorted(
+            range(len(scores)), key=lambda i: scores[i], reverse=True
+        )
         return [(self._docs[i], scores[i]) for i in ranked[:top_k] if scores[i] > 0]
