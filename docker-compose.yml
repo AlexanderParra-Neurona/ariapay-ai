@@ -1,9 +1,23 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+networks:
+  frontend:
+  backend:
+    internal: true
+
 services:
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:latest@sha256:075246f72d4109385b4a01c3ac8e9cbd26a0bcb21cd7aa30edbccd24e1b3180c
     profiles: ["ollama"]
+    restart: unless-stopped
+    networks:
+      - backend
     ports:
-      - "11434:11434"
+      - "127.0.0.1:11434:11434"
     volumes:
       - ./ollama_data:/root/.ollama
     healthcheck:
@@ -11,10 +25,16 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
+    logging: *default-logging
+    cpus: "4"
+    mem_limit: 8g
 
   ollama-pull:
-    image: ollama/ollama:latest
+    image: ollama/ollama:latest@sha256:075246f72d4109385b4a01c3ac8e9cbd26a0bcb21cd7aa30edbccd24e1b3180c
     profiles: ["ollama"]
+    networks:
+      - backend
+    restart: "no"
     environment:
       OLLAMA_HOST: http://ollama:11434
       OLLAMA_EMBED_MODEL: ${OLLAMA_EMBED_MODEL}
@@ -25,12 +45,18 @@ services:
     depends_on:
       ollama:
         condition: service_healthy
+    logging: *default-logging
+    cpus: "1"
+    mem_limit: 512m
 
   qdrant:
-    image: qdrant/qdrant:latest
+    image: qdrant/qdrant:latest@sha256:057ee3a8da769fe7310dd3537b4dc7583bf87a95ce8ac43c0af5a46bc580d1fc
+    restart: unless-stopped
+    networks:
+      - backend
     ports:
-      - "6333:6333"
-      - "6334:6334"
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
@@ -38,9 +64,15 @@ services:
       interval: 30s
       timeout: 5s
       retries: 5
+    logging: *default-logging
+    cpus: "2"
+    mem_limit: 4g
 
   qdrant-init:
-    image: curlimages/curl:latest
+    image: curlimages/curl:latest@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
+    restart: "no"
+    networks:
+      - backend
     environment:
       QDRANT_URL: http://qdrant:6333
       QDRANT_COLLECTION: ${QDRANT_COLLECTION}
@@ -53,9 +85,15 @@ services:
     depends_on:
       qdrant:
         condition: service_healthy
+    logging: *default-logging
+    cpus: "0.5"
+    mem_limit: 256m
 
   qdrant-ingest:
     build: .
+    restart: "no"
+    networks:
+      - backend
     environment:
       OLLAMA_URL: http://ollama:11434
       OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL}
@@ -70,18 +108,26 @@ services:
     volumes:
       - ./.llm-provider:/app/.llm-provider:ro
       - ./data:/app/data
-    entrypoint: ["uv", "run", "python", "scripts/ingest_qdrant.py"]
+    entrypoint: ["uv", "run", "--frozen", "--no-dev", "python", "scripts/ingest_qdrant.py"]
     depends_on:
       ollama-pull:
         condition: service_completed_successfully
         required: false
       qdrant-init:
         condition: service_completed_successfully
+    logging: *default-logging
+    cpus: "2"
+    mem_limit: 2g
 
   app:
     build: .
+    restart: unless-stopped
+    networks:
+      - frontend
+      - backend
+      - default
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       ARIAPAY_API_URL: ${ARIAPAY_API_URL}
       OLLAMA_URL: http://ollama:11434
@@ -119,6 +165,10 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    stop_grace_period: 30s
+    logging: *default-logging
+    cpus: "2"
+    mem_limit: 1g
 
 volumes:
   qdrant_data:

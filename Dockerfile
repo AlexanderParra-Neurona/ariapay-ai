@@ -13,6 +13,11 @@ RUN uv sync --frozen --no-dev
 COPY app ./app
 COPY scripts ./scripts
 
+RUN groupadd --gid 1000 app && useradd --uid 1000 --gid app --no-create-home app \
+    && chown -R app:app /app
+ENV UV_CACHE_DIR=/app/.cache/uv
+USER app
+
 EXPOSE 8000
 
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "--frozen", "--no-dev", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
