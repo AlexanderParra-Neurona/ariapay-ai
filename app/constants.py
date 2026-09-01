@@ -81,11 +81,6 @@ DEFAULT_TRANSACTIONS_MAX_RESULTS = 200
 
 RRF_K_CONSTANT = 60
 
-# --- Redis / FAQ cache ---
-
-FAQ_INDEX_NAME = "idx:faq"
-FAQ_KEY_PREFIX = "faq:doc:"
-
 # --- UI / user-facing messages ---
 
 CURRENCY_PREFIX = "Rp"
