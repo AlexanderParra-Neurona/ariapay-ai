@@ -1,11 +1,20 @@
 import requests
 
 from app.config import settings
+from app.constants import (
+    API_V1_PREFIX,
+    HTTP_TIMEOUT_CHAT_SECONDS,
+    HTTP_TIMEOUT_DEFAULT_SECONDS,
+)
 
 
 def respond(message: str, history: list[dict], access_token: str) -> str:
     payload = {"question": message, "access_token": access_token or None}
-    resp = requests.post(f"{settings.API_URL}/chat", json=payload, timeout=300)
+    resp = requests.post(
+        f"{settings.API_URL}{API_V1_PREFIX}/chat",
+        json=payload,
+        timeout=HTTP_TIMEOUT_CHAT_SECONDS,
+    )
     resp.raise_for_status()
     data = resp.json()
     return f"`{data['category']}`\n\n{data['answer']}"
@@ -18,7 +27,11 @@ def login() -> tuple[str, str]:
         "password": settings.LOGIN_PASSWORD,
         "passcode": settings.LOGIN_PASSCODE,
     }
-    resp = requests.post(f"{settings.API_URL}/auth/login", json=payload, timeout=30)
+    resp = requests.post(
+        f"{settings.API_URL}{API_V1_PREFIX}/auth/login",
+        json=payload,
+        timeout=HTTP_TIMEOUT_DEFAULT_SECONDS,
+    )
     if not resp.ok:
         try:
             detail = resp.json().get("detail", "Login failed")

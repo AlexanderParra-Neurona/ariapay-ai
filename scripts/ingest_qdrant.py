@@ -16,8 +16,9 @@ HEADING_RE = re.compile(r"^##\s+(.+)$", re.MULTILINE)
 
 
 def get_cached_qdrant_service() -> QdrantService:
-    cache_file = CACHE_DIR / f"{settings.LLM_PROVIDER}_{settings.EMBED_MODEL}.json".replace(
-        "/", "_"
+    cache_file = (
+        CACHE_DIR
+        / f"{settings.LLM_PROVIDER}_{settings.EMBED_MODEL}.json".replace("/", "_")
     )
     embeddings = FileCachedEmbeddings(
         LLMServiceEmbeddings(get_llm_service()), cache_file

@@ -12,7 +12,7 @@ docker compose up --build
 make seed   # populate dummy FAQ data
 ```
 
-App at `http://localhost:8000`. Endpoints: `GET /health`, `POST /chat` (`{"question": "..."}`).
+App at `http://localhost:8000`. Endpoints: `GET /v1/health`, `POST /v1/chat` (`{"question": "..."}`).
 
 Redis GUI (redis-commander) at `http://localhost:8081`.
 

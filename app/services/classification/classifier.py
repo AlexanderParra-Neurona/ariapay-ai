@@ -1,11 +1,9 @@
 import json
-import logging
 import re
 
+from app.constants import Role, SpendingCategory, TraceName, TRACE_NAME_METADATA_KEY
 from app.services.classification.types import QueryCategory, TransactionScope
 from app.services.llm.base import LLMService
-
-logger = logging.getLogger("ariabot.classification")
 
 _SYSTEM_PROMPT = """You are a query classifier for Ariapay, a payments app assistant.
 Classify the user's message into exactly one category:
@@ -17,9 +15,7 @@ Classify the user's message into exactly one category:
 
 Respond with only the category label, nothing else. Valid labels: general_faq, account_profile, transaction_history, out_of_scope."""
 
-_LABEL_PATTERN = re.compile(
-    r"general_faq|account_profile|transaction_history|out_of_scope"
-)
+_LABEL_PATTERN = re.compile("|".join(c.value for c in QueryCategory))
 
 
 class QueryClassifier:
@@ -28,25 +24,19 @@ class QueryClassifier:
 
     def classify(self, question: str) -> QueryCategory:
         messages = [
-            {"role": "system", "content": _SYSTEM_PROMPT},
-            {"role": "user", "content": question},
+            {"role": Role.SYSTEM, "content": _SYSTEM_PROMPT},
+            {"role": Role.USER, "content": question},
         ]
-        raw = self._llm_service.chat(messages)
-        category = self._parse(raw)
-        logger.info(
-            "classify question=%r raw=%r category=%s", question, raw, category.value
+        raw = self._llm_service.chat(
+            messages,
+            metadata={TRACE_NAME_METADATA_KEY: TraceName.QUERY_CLASSIFIER},
         )
-        return category
+        return self._parse(raw)
 
     @staticmethod
     def _parse(raw: str) -> QueryCategory:
         match = _LABEL_PATTERN.search(raw.strip().lower())
         if not match:
-            logger.warning(
-                "classify_unparseable raw=%r fallback=%s",
-                raw,
-                QueryCategory.OUT_OF_SCOPE.value,
-            )
             return QueryCategory.OUT_OF_SCOPE
         return QueryCategory(match.group(0))
 
@@ -67,14 +57,7 @@ exact labels if it matches: food_and_beverage, retail, transportation, \
 health_and_wellness, entertainment, home_and_garden. Use null if no category is \
 mentioned or implied."""
 
-_VALID_CATEGORIES = {
-    "food_and_beverage",
-    "retail",
-    "transportation",
-    "health_and_wellness",
-    "entertainment",
-    "home_and_garden",
-}
+_VALID_CATEGORIES = {c.value for c in SpendingCategory}
 
 
 class TransactionScopeClassifier:
@@ -83,19 +66,16 @@ class TransactionScopeClassifier:
 
     def classify(self, question: str) -> TransactionScope:
         messages = [
-            {"role": "system", "content": _SCOPE_SYSTEM_PROMPT},
-            {"role": "user", "content": question},
+            {"role": Role.SYSTEM, "content": _SCOPE_SYSTEM_PROMPT},
+            {"role": Role.USER, "content": question},
         ]
-        raw = self._llm_service.chat(messages)
-        scope = self._parse(raw)
-        logger.info(
-            "classify_scope question=%r raw=%r wants_all=%s category=%s",
-            question,
-            raw,
-            scope.wants_all,
-            scope.category,
+        raw = self._llm_service.chat(
+            messages,
+            metadata={
+                TRACE_NAME_METADATA_KEY: TraceName.TRANSACTION_SCOPE_CLASSIFIER
+            },
         )
-        return scope
+        return self._parse(raw)
 
     @staticmethod
     def _extract_json_object(raw: str) -> str | None:
@@ -116,12 +96,10 @@ class TransactionScopeClassifier:
     def _parse(cls, raw: str) -> TransactionScope:
         candidate = cls._extract_json_object(raw.strip())
         if candidate is None:
-            logger.warning("classify_scope_unparseable raw=%r fallback=limited", raw)
             return TransactionScope(wants_all=False, category=None)
         try:
             data = json.loads(candidate)
         except json.JSONDecodeError:
-            logger.warning("classify_scope_invalid_json raw=%r fallback=limited", raw)
             return TransactionScope(wants_all=False, category=None)
 
         category = data.get("category")

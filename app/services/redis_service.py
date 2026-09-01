@@ -6,11 +6,12 @@ from redis.commands.search.field import TagField, TextField, VectorField
 from redis.commands.search.index_definition import IndexDefinition, IndexType
 
 from app.config import settings
+from app.constants import FAQ_INDEX_NAME, FAQ_KEY_PREFIX
 
 _client: redis.Redis | None = None
 
-FAQ_INDEX = "idx:faq"
-FAQ_PREFIX = "faq:doc:"
+FAQ_INDEX = FAQ_INDEX_NAME
+FAQ_PREFIX = FAQ_KEY_PREFIX
 
 
 def get_redis() -> redis.Redis:

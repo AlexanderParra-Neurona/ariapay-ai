@@ -3,7 +3,6 @@ from pathlib import Path
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -48,9 +47,6 @@ class Settings(BaseSettings):
     RETRIEVAL_TOP_K: int = 5
     RETRIEVAL_CANDIDATE_POOL: int = 20
     TRANSACTIONS_MAX_ALL: int = 200
-
-    LOG_DIR: str = "logs"
-    LOG_LEVEL: str = "INFO"
 
     @property
     def CHAT_MODEL(self) -> str:

@@ -1,12 +1,14 @@
 from langchain_core.documents import Document
 
+from app.constants import RRF_K_CONSTANT
+
 
 def _doc_key(doc: Document) -> tuple:
     return (doc.metadata.get("source"), doc.metadata.get("heading"))
 
 
 def rrf_fuse(
-    rankings: list[list[tuple[Document, float]]], k: int = 60
+    rankings: list[list[tuple[Document, float]]], k: int = RRF_K_CONSTANT
 ) -> list[tuple[Document, float]]:
     scores: dict[tuple, float] = {}
     doc_by_key: dict[tuple, Document] = {}
