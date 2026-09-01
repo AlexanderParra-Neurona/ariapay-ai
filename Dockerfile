@@ -7,14 +7,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 
 RUN pip install --no-cache-dir uv
 
-COPY pyproject.toml uv.lock ./
+RUN groupadd --gid 1000 app && useradd --uid 1000 --gid app --no-create-home app
+
+COPY --chown=app:app pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 
-COPY app ./app
-COPY scripts ./scripts
+COPY --chown=app:app app ./app
+COPY --chown=app:app scripts ./scripts
 
-RUN groupadd --gid 1000 app && useradd --uid 1000 --gid app --no-create-home app \
-    && chown -R app:app /app
 ENV UV_CACHE_DIR=/app/.cache/uv
 USER app
 
