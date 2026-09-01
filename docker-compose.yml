@@ -10,51 +10,6 @@ networks:
     internal: true
 
 services:
-  qdrant-init:
-    image: curlimages/curl:latest@sha256:7c12af72ceb38b7432ab85e1a265cff6ae58e06f95539d539b654f2cfa64bb13
-    restart: "no"
-    networks:
-      - backend
-      - default
-    environment:
-      QDRANT_URL: ${QDRANT_URL}
-      QDRANT_API_KEY: ${QDRANT_API_KEY}
-      QDRANT_COLLECTION: ${QDRANT_COLLECTION}
-      OLLAMA_EMBED_DIM: ${OLLAMA_EMBED_DIM}
-      DEEPINFRA_EMBED_DIM: ${DEEPINFRA_EMBED_DIM}
-    volumes:
-      - ./docker/init_qdrant.sh:/init_qdrant.sh:ro
-      - ./.llm-provider:/.llm-provider:ro
-    entrypoint: ["sh", "/init_qdrant.sh"]
-    logging: *default-logging
-    cpus: "0.5"
-    mem_limit: 256m
-
-  qdrant-ingest:
-    build: .
-    restart: "no"
-    networks:
-      - backend
-      - default
-    environment:
-      DEEPINFRA_API_TOKEN: ${DEEPINFRA_API_TOKEN}
-      DEEPINFRA_CHAT_MODEL: ${DEEPINFRA_CHAT_MODEL}
-      DEEPINFRA_EMBED_MODEL: ${DEEPINFRA_EMBED_MODEL}
-      DEEPINFRA_EMBED_DIM: ${DEEPINFRA_EMBED_DIM}
-      QDRANT_URL: ${QDRANT_URL}
-      QDRANT_API_KEY: ${QDRANT_API_KEY}
-      QDRANT_COLLECTION: ${QDRANT_COLLECTION}
-    volumes:
-      - ./.llm-provider:/app/.llm-provider:ro
-      - ./data:/app/data
-    entrypoint: ["uv", "run", "--frozen", "--no-dev", "python", "scripts/ingest_qdrant.py"]
-    depends_on:
-      qdrant-init:
-        condition: service_completed_successfully
-    logging: *default-logging
-    cpus: "2"
-    mem_limit: 2g
-
   app:
     build: .
     restart: unless-stopped
@@ -79,11 +34,6 @@ services:
       LANGFUSE_HOST: ${LANGFUSE_HOST:-http://langfuse-web:3000}
     volumes:
       - ./.llm-provider:/app/.llm-provider:ro
-    depends_on:
-      qdrant-init:
-        condition: service_completed_successfully
-      qdrant-ingest:
-        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/v1/health"]
       interval: 30s

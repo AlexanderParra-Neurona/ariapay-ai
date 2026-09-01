@@ -56,7 +56,7 @@ $EDITOR .env   # fill in real DEEPINFRA_API_TOKEN, QDRANT_URL/API_KEY, ARIAPAY_A
 bash deploy/vm_deploy.sh
 ```
 
-Brings up `qdrant-init`, `qdrant-ingest`, `app` — listening on `127.0.0.1:${APP_PORT:-8000}`
+Brings up `app` — listening on `127.0.0.1:${APP_PORT:-8000}`
 only (not publicly exposed directly; nginx handles that in the next step). The script prints
 the actual port it bound.
 
