@@ -3,23 +3,24 @@
 setup-hooks:
 	@git config core.hooksPath .githooks
 
+LLM_PROVIDER := $(shell tr -d '[:space:]' < .llm-provider 2>/dev/null)
+
+COMPOSE = docker compose --env-file .env --env-file .env.langfuse -f docker-compose.yml -f docker/docker-compose.langfuse.yml
+ifeq ($(LLM_PROVIDER),ollama)
+COMPOSE += --profile ollama
+endif
+
 up:
-	docker compose up --build -d
+	$(COMPOSE) up --build -d
 
 down:
-	docker compose down
+	$(COMPOSE) down
 
 clean:
-	docker compose down -v
-
-build:
-	docker compose build
+	$(COMPOSE) down -v
 
 logs:
-	docker compose logs -f
-
-all:
-	$(MAKE) -j3 redis dev ui
+	$(COMPOSE) logs -f
 
 redis:
 	docker run --rm -p 6379:6379 --name ariabot-redis redis/redis-stack-server:latest

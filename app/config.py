@@ -44,6 +44,11 @@ class Settings(BaseSettings):
     QDRANT_URL: str = "changeme"
     QDRANT_COLLECTION: str = "changeme"
 
+    LANGFUSE_ENABLED: bool = False
+    LANGFUSE_PUBLIC_KEY: str = "changeme"
+    LANGFUSE_SECRET_KEY: str = "changeme"
+    LANGFUSE_HOST: str = "http://localhost:3000"
+
     RETRIEVAL_TOP_K: int = 5
     RETRIEVAL_CANDIDATE_POOL: int = 20
     TRANSACTIONS_MAX_ALL: int = 200
