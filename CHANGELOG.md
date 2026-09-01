@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-09-01
+
+#### Removed
+- Redis and the FAQ cache layer removed (unused after cache path dropped) — `redis` dependency, service, config vars, and Docker Compose wiring all removed.
+
 ### 2026-08-31
 
 #### Added
