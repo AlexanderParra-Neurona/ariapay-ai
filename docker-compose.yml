@@ -13,6 +13,7 @@ services:
 
   ollama:
     image: ollama/ollama:latest
+    profiles: ["ollama"]
     ports:
       - "11434:11434"
     volumes:
@@ -25,12 +26,13 @@ services:
 
   ollama-pull:
     image: ollama/ollama:latest
+    profiles: ["ollama"]
     environment:
       OLLAMA_HOST: http://ollama:11434
       OLLAMA_EMBED_MODEL: ${OLLAMA_EMBED_MODEL}
       OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL}
     volumes:
-      - ./scripts/pull_models.sh:/pull_models.sh:ro
+      - ./docker/pull_models.sh:/pull_models.sh:ro
     entrypoint: ["sh", "/pull_models.sh"]
     depends_on:
       ollama:
@@ -57,7 +59,7 @@ services:
       OLLAMA_EMBED_DIM: ${OLLAMA_EMBED_DIM}
       DEEPINFRA_EMBED_DIM: ${DEEPINFRA_EMBED_DIM}
     volumes:
-      - ./scripts/init_qdrant.sh:/init_qdrant.sh:ro
+      - ./docker/init_qdrant.sh:/init_qdrant.sh:ro
       - ./.llm-provider:/.llm-provider:ro
     entrypoint: ["sh", "/init_qdrant.sh"]
     depends_on:
