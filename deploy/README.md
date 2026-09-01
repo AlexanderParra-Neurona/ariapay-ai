@@ -62,24 +62,17 @@ the actual port it bound.
 
 ## 5. Add the nginx site + TLS cert (one-time)
 
-```bash
-sudo cp deploy/ariabot.nginx.conf /etc/nginx/sites-available/ariabot
-sudo sed -i 's/STAGING_DOMAIN_PLACEHOLDER/staging-ai.ariapay.com/' /etc/nginx/sites-available/ariabot
-sudo sed -i 's/APP_PORT_PLACEHOLDER/8000/' /etc/nginx/sites-available/ariabot   # match APP_PORT from .env
-sudo ln -s /etc/nginx/sites-available/ariabot /etc/nginx/sites-enabled/ariabot
-sudo nginx -t && echo "systemctl reload nginx" | sudo sh
-
-# Requires DNS to already resolve to this VM (step 1).
-sudo certbot --nginx -d staging-ai.ariapay.com
-```
-
-certbot rewrites `/etc/nginx/sites-available/ariabot` in place to add the HTTPS server block
-and sets up auto-renewal. Confirm the existing backend's site is untouched:
+Requires DNS to already resolve to this VM (step 1).
 
 ```bash
-sudo nginx -t
-ls /etc/nginx/sites-enabled/
+STAGING_DOMAIN=staging-ai.ariapay.com APP_PORT=8000 bash deploy/vm_nginx_setup.sh
 ```
+
+Copies [`ariabot.nginx.conf`](./ariabot.nginx.conf) into `sites-available`, fills in the domain
+and port, enables the site, reloads nginx, then runs certbot. certbot rewrites
+`/etc/nginx/sites-available/ariabot` in place to add the HTTPS server block and sets up
+auto-renewal. The script is safe to re-run (skips steps already done) and prints commands at
+the end to confirm the existing backend's site is untouched.
 
 ## 6. Smoke test (run from any external machine, not the VM)
 
