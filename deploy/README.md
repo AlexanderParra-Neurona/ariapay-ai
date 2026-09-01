@@ -1,8 +1,10 @@
 # Staging deploy (GCP VM, shared with existing nginx-fronted backend)
 
-Deploys the existing Docker image to the GCP VM on `127.0.0.1:8000`; the VM's existing nginx
-(already reverse-proxying another API backend) gets a second server block for the new
-staging subdomain, with its own Let's Encrypt cert via certbot.
+Deploys the existing Docker image to the GCP VM on `127.0.0.1:${APP_PORT:-8000}`; the VM's
+existing nginx (already reverse-proxying another API backend) gets a second server block for
+the new staging subdomain, with its own Let's Encrypt cert via certbot. If the existing
+backend already occupies port 8000 on the VM, set `APP_PORT` to a free port (e.g. `8001`) in
+`.env` in step 3 — nginx just needs to point at the same port (step 5).
 
 Qdrant is already managed/external (see `docker-compose.yml`) — nothing to provision for it.
 
@@ -54,14 +56,16 @@ $EDITOR .env   # fill in real DEEPINFRA_API_TOKEN, QDRANT_URL/API_KEY, ARIAPAY_A
 bash deploy/vm_deploy.sh
 ```
 
-Brings up `qdrant-init`, `qdrant-ingest`, `app` — listening on `127.0.0.1:8000` only (not
-publicly exposed directly; nginx handles that in the next step).
+Brings up `qdrant-init`, `qdrant-ingest`, `app` — listening on `127.0.0.1:${APP_PORT:-8000}`
+only (not publicly exposed directly; nginx handles that in the next step). The script prints
+the actual port it bound.
 
 ## 5. Add the nginx site + TLS cert (one-time)
 
 ```bash
 sudo cp deploy/ariabot.nginx.conf /etc/nginx/sites-available/ariabot
 sudo sed -i 's/STAGING_DOMAIN_PLACEHOLDER/staging-ai.ariapay.com/' /etc/nginx/sites-available/ariabot
+sudo sed -i 's/APP_PORT_PLACEHOLDER/8000/' /etc/nginx/sites-available/ariabot   # match APP_PORT from .env
 sudo ln -s /etc/nginx/sites-available/ariabot /etc/nginx/sites-enabled/ariabot
 sudo nginx -t && echo "systemctl reload nginx" | sudo sh
 

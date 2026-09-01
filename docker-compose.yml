@@ -63,7 +63,7 @@ services:
       - backend
       - default
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
     environment:
       ARIAPAY_API_URL: ${ARIAPAY_API_URL}
       DEEPINFRA_API_TOKEN: ${DEEPINFRA_API_TOKEN}
