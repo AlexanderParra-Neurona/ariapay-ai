@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-09-02
+
+#### Changed
+- Docker image rebuilt as multi-stage (builder/runtime split) — production image no longer ships the `uv` toolchain or dev-only tooling, cutting image size ~57% (1.63GB → 723MB).
+- Healthcheck now uses Python's `urllib` instead of `curl`, dropping the need to install `curl` in the runtime image.
+- `fastembed`, `gradio`, `langchain-community`, and `requests` moved out of production dependencies into the dev group — `gradio`/`requests` are only used by the Gradio UI (not required for the API service), and `fastembed`/`langchain-community` were unused.
+
 ### 2026-09-01
 
 #### Removed
