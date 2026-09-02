@@ -5,7 +5,7 @@ setup-hooks:
 
 LLM_PROVIDER := $(shell tr -d '[:space:]' < .llm-provider 2>/dev/null)
 
-COMPOSE = docker compose --env-file .env --env-file .env.langfuse -f docker-compose.yml -f docker/docker-compose.langfuse.yml
+COMPOSE = docker compose --env-file .env -f docker-compose.yml
 ifeq ($(LLM_PROVIDER),ollama)
 COMPOSE += --profile ollama
 endif

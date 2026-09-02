@@ -9,6 +9,7 @@ from qdrant_client.http.models import (
     FieldCondition,
     Filter,
     MatchValue,
+    PayloadSchemaType,
     VectorParams,
 )
 
@@ -33,7 +34,9 @@ TRANSACTIONS_VECTOR = TRANSACTIONS_VECTOR_NAME
 
 class QdrantService:
     def __init__(self, embeddings: Embeddings | None = None) -> None:
-        self._client = _QdrantClient(url=settings.QDRANT_URL)
+        self._client = _QdrantClient(
+            url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY
+        )
         self._embeddings = embeddings or LLMServiceEmbeddings(get_llm_service())
         self._ensure_collection()
         self._docs_store = QdrantVectorStore(
@@ -52,6 +55,7 @@ class QdrantService:
     def _ensure_collection(self) -> None:
         if self._client.collection_exists(COLLECTION_NAME):
             self._verify_schema()
+            self._ensure_payload_indexes()
             return
         if settings.EMBED_DIM <= 0:
             raise RuntimeError(
@@ -70,6 +74,15 @@ class QdrantService:
                 ),
             },
         )
+        self._ensure_payload_indexes()
+
+    def _ensure_payload_indexes(self) -> None:
+        for field_name in ("metadata.type", "metadata.category"):
+            self._client.create_payload_index(
+                collection_name=COLLECTION_NAME,
+                field_name=field_name,
+                field_schema=PayloadSchemaType.KEYWORD,
+            )
 
     def _verify_schema(self) -> None:
         vectors = self._client.get_collection(COLLECTION_NAME).config.params.vectors
