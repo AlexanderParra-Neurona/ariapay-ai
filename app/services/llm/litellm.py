@@ -4,8 +4,15 @@ from typing import Any
 import litellm
 
 from app.config import settings
-from app.constants import DEEPINFRA_OPENAI_BASE, LLMProvider, OPENAI_MODEL_PREFIX
+from app.constants import (
+    DEEPINFRA_OPENAI_BASE,
+    OPENAI_MODEL_PREFIX,
+    TAGS_METADATA_KEY,
+    LLMProvider,
+)
 from app.services.llm.base import LLMService
+
+_ENV_TAG = f"env:{settings.APP_ENV}"
 
 if settings.LANGFUSE_ENABLED:
     os.environ.setdefault("LANGFUSE_PUBLIC_KEY", settings.LANGFUSE_PUBLIC_KEY)
@@ -61,6 +68,14 @@ class LiteLLMService(LLMService):
             messages=messages,
             api_base=self._chat_api_base,
             api_key=self._chat_api_key,
-            metadata=metadata,
+            metadata=self._with_env_tag(metadata),
         )
         return resp.choices[0].message.content
+
+    @staticmethod
+    def _with_env_tag(metadata: dict[str, Any] | None) -> dict[str, Any]:
+        metadata = dict(metadata) if metadata else {}
+        tags = list(metadata.get(TAGS_METADATA_KEY, []))
+        tags.append(_ENV_TAG)
+        metadata[TAGS_METADATA_KEY] = tags
+        return metadata

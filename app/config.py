@@ -28,6 +28,8 @@ class Settings(BaseSettings):
 
     LLM_PROVIDER: str = Field(default_factory=_read_llm_provider)
 
+    APP_ENV: str = "development"
+
     OLLAMA_URL: str = "changeme"
     OLLAMA_CHAT_MODEL: str = "changeme"
     OLLAMA_EMBED_MODEL: str = "changeme"

@@ -20,6 +20,7 @@ services:
     ports:
       - "127.0.0.1:${APP_PORT:-8000}:8000"
     environment:
+      APP_ENV: ${APP_ENV:-development}
       ARIAPAY_API_URL: ${ARIAPAY_API_URL}
       DEEPINFRA_API_TOKEN: ${DEEPINFRA_API_TOKEN}
       DEEPINFRA_CHAT_MODEL: ${DEEPINFRA_CHAT_MODEL}
