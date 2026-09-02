@@ -43,6 +43,7 @@ class TraceName(str, Enum):
 
 
 TRACE_NAME_METADATA_KEY = "trace_name"
+TAGS_METADATA_KEY = "tags"
 
 DEEPINFRA_OPENAI_BASE = "https://api.deepinfra.com/v1/openai"
 OPENAI_MODEL_PREFIX = "openai/"
