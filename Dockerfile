@@ -1,23 +1,35 @@
-FROM python:3.11-slim
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir uv==0.9.7
 
-RUN pip install --no-cache-dir uv
+COPY pyproject.toml uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev --no-install-project
+
+COPY app ./app
+COPY scripts ./scripts
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-dev
+
+
+FROM python:3.11-slim AS runtime
+
+WORKDIR /app
 
 RUN groupadd --gid 1000 app && useradd --uid 1000 --gid app --no-create-home app
 
-COPY --chown=app:app pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev
+COPY --from=builder --chown=app:app /app/.venv ./.venv
+COPY --from=builder --chown=app:app /app/app ./app
+COPY --from=builder --chown=app:app /app/scripts ./scripts
 
-COPY --chown=app:app app ./app
-COPY --chown=app:app scripts ./scripts
-
-ENV UV_CACHE_DIR=/app/.cache/uv
+ENV PATH="/app/.venv/bin:$PATH"
 USER app
 
 EXPOSE 8000
 
-CMD ["uv", "run", "--frozen", "--no-dev", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/health')" || exit 1
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
