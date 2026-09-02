@@ -1,5 +1,12 @@
 # Staging deploy (GCP VM, shared with existing nginx-fronted backend)
 
+Two deploy paths exist:
+
+- **This file** — GCP VM behind the existing shared nginx (`gcp/` for the GCP-specific
+  scripts, everything else here is generic Ubuntu/Docker/nginx and reusable on any VM).
+- **[`railway/`](./railway/README.md)** — push the same Dockerfile to Railway instead, no
+  VM/nginx/certbot to manage.
+
 Deploys the existing Docker image to the GCP VM on `127.0.0.1:${APP_PORT:-8000}`; the VM's
 existing nginx (already reverse-proxying another API backend) gets a second server block for
 the new staging subdomain, with its own Let's Encrypt cert via certbot. If the existing

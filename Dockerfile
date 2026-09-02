@@ -5,13 +5,10 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv==0.9.7
 
 COPY pyproject.toml uv.lock ./
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev --no-install-project
+RUN uv sync --frozen --no-dev --no-install-project
 
 COPY app ./app
-COPY scripts ./scripts
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev
 
 
 FROM python:3.11-slim AS runtime
@@ -22,7 +19,7 @@ RUN groupadd --gid 1000 app && useradd --uid 1000 --gid app --no-create-home app
 
 COPY --from=builder --chown=app:app /app/.venv ./.venv
 COPY --from=builder --chown=app:app /app/app ./app
-COPY --from=builder --chown=app:app /app/scripts ./scripts
+RUN echo "deepinfra" > /app/.llm-provider && chown app:app /app/.llm-provider
 
 ENV PATH="/app/.venv/bin:$PATH"
 USER app
