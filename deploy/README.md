@@ -24,7 +24,7 @@ bash deploy/gcp_setup.sh
 Reserves the VM's external IP as static if not already (this VM's IP was already reserved for
 the existing backend's subdomain — the script detects that and skips), and ensures firewall
 ports 80/443 are open (likely already open for the existing backend too). Prints the external
-IP — create a DNS **A record** for your staging subdomain (e.g. `staging-ai.ariapay.com`)
+IP — create a DNS **A record** for your staging subdomain (e.g. `staging-ai.ariapay.id`)
 pointing at it, TTL 300.
 
 ## 2. Bootstrap the VM (run once, via SSH)
@@ -65,7 +65,7 @@ the actual port it bound.
 Requires DNS to already resolve to this VM (step 1).
 
 ```bash
-STAGING_DOMAIN=staging-ai.ariapay.com APP_PORT=8000 bash deploy/vm_nginx_setup.sh
+STAGING_DOMAIN=staging-ai.ariapay.id APP_PORT=8000 bash deploy/vm_nginx_setup.sh
 ```
 
 Copies [`ariabot.nginx.conf`](./ariabot.nginx.conf) into `sites-available`, fills in the domain
@@ -77,10 +77,10 @@ the end to confirm the existing backend's site is untouched.
 ## 6. Smoke test (run from any external machine, not the VM)
 
 ```bash
-curl -s https://staging-ai.ariapay.com/v1/health
+curl -s https://staging-ai.ariapay.id/v1/health
 # {"status":"ok"}
 
-curl -s -X POST https://staging-ai.ariapay.com/v1/chat \
+curl -s -X POST https://staging-ai.ariapay.id/v1/chat \
   -H 'Content-Type: application/json' \
   -d '{"question": "What is Ariapay?"}'
 ```

@@ -13,5 +13,5 @@ fi
 
 # Plain `sudo systemctl ...` fails on this VM (sudo can't exec it directly, even by
 # absolute path) — piping into `sudo sh -c` gets a real root shell instead, sidestepping that.
-echo "systemctl enable --now docker"
+echo "systemctl enable --now docker" | sudo sh
 echo "Docker running. Next: copy the repo over and run deploy/vm_deploy.sh"

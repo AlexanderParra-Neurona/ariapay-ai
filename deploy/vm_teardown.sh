@@ -39,7 +39,7 @@ if [ -n "$STAGING_DOMAIN" ]; then
     echo "certbot delete skipped/failed (cert may not exist) — not fatal."
 else
   echo "No domain passed — skipping certbot cert cleanup. Run with:"
-  echo "  bash deploy/vm_teardown.sh staging-ai.ariapay.com"
+  echo "  bash deploy/vm_teardown.sh staging-ai.ariapay.id"
   echo "to also remove the cert."
 fi
 
