@@ -14,11 +14,11 @@ Nothing here needs secrets pasted into chat/tickets — fill placeholders locall
 
 Requires the `gcloud` CLI, authenticated (`gcloud auth login`) with access to the project.
 
-Edit the 4 placeholders at the top of [`gcp_setup.sh`](./gcp_setup.sh) (`PROJECT_ID`, `VM_NAME`,
+Edit the 4 placeholders at the top of [`gcp/gcp_setup.sh`](./gcp/gcp_setup.sh) (`PROJECT_ID`, `VM_NAME`,
 `ZONE`, `REGION`), then:
 
 ```bash
-bash deploy/gcp_setup.sh
+bash deploy/gcp/gcp_setup.sh
 ```
 
 Reserves the VM's external IP as static if not already (this VM's IP was already reserved for

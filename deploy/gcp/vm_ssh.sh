@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run locally (not on the VM). Requires `gcloud` installed and `gcloud auth login` done.
-# Usage: bash deploy/vm_ssh.sh
+# Usage: bash deploy/gcp/vm_ssh.sh
 set -euo pipefail
 
 PROJECT_ID="neurona-491301"

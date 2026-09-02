@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run locally (not on the VM). Requires `gcloud` installed and `gcloud auth login` done.
-# Fill in the 4 values below, then: bash deploy/gcp_setup.sh
+# Fill in the 4 values below, then: bash deploy/gcp/gcp_setup.sh
 set -euo pipefail
 
 PROJECT_ID="neurona-491301"

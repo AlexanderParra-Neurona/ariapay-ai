@@ -28,7 +28,7 @@ fi
 sudo nginx -t
 echo "systemctl reload nginx" | sudo sh
 
-# Requires DNS to already resolve to this VM (see deploy/gcp_setup.sh / README step 1).
+# Requires DNS to already resolve to this VM (see deploy/gcp/gcp_setup.sh / README step 1).
 sudo certbot --nginx -d "$STAGING_DOMAIN"
 
 # Certbot's nginx plugin edits whichever server block it finds matching server_name
