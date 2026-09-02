@@ -1,14 +1,6 @@
-.PHONY: up down clean build logs dev redis ui seed seed-clear scrape faq ingest-qdrant all setup-hooks
-
-setup-hooks:
-	@git config core.hooksPath .githooks
-
-LLM_PROVIDER := $(shell tr -d '[:space:]' < .llm-provider 2>/dev/null)
+.PHONY: up down clean build logs dev ui scrape faq ingest-qdrant all
 
 COMPOSE = docker compose --env-file .env -f docker-compose.yml
-ifeq ($(LLM_PROVIDER),ollama)
-COMPOSE += --profile ollama
-endif
 
 up:
 	$(COMPOSE) up --build -d
@@ -22,20 +14,11 @@ clean:
 logs:
 	$(COMPOSE) logs -f
 
-redis:
-	docker run --rm -p 6379:6379 --name ariabot-redis redis/redis-stack-server:latest
-
-dev: setup-hooks
+dev:
 	uv run uvicorn app.main:app --reload
 
-ui: setup-hooks
+ui:
 	uv run python -m app.ui
-
-seed:
-	uv run python scripts/seed_redis.py
-
-seed-clear:
-	uv run python scripts/seed_redis.py --clear
 
 scrape:
 	uv run python scripts/scrape_pages.py

@@ -3,8 +3,8 @@
 # Usage: bash deploy/gcp/vm_ssh.sh
 set -euo pipefail
 
-PROJECT_ID="neurona-491301"
-VM_NAME="instance-20260421-014232"
-ZONE="us-central1-f"
+PROJECT_ID="${PROJECT_ID:-neurona-491301}"
+VM_NAME="${VM_NAME:-instance-20260421-014232}"
+ZONE="${ZONE:-us-central1-f}"
 
 gcloud compute ssh "$VM_NAME" --zone="$ZONE" --project="$PROJECT_ID"

@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     DEEPINFRA_EMBED_DIM: int = 4096
 
     QDRANT_URL: str = "changeme"
-    QDRANT_API_KEY: str = "changeme"
+    QDRANT_API_KEY: str | None = None
     QDRANT_COLLECTION: str = "changeme"
 
     LANGFUSE_ENABLED: bool = False

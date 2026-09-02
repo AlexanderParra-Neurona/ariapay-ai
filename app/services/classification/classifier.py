@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 
 from app.constants import Role, SpendingCategory, TraceName, TRACE_NAME_METADATA_KEY
@@ -16,6 +17,8 @@ Classify the user's message into exactly one category:
 Respond with only the category label, nothing else. Valid labels: general_faq, account_profile, transaction_history, out_of_scope."""
 
 _LABEL_PATTERN = re.compile("|".join(c.value for c in QueryCategory))
+
+logger = logging.getLogger(__name__)
 
 
 class QueryClassifier:
@@ -37,6 +40,7 @@ class QueryClassifier:
     def _parse(raw: str) -> QueryCategory:
         match = _LABEL_PATTERN.search(raw.strip().lower())
         if not match:
+            logger.warning("QueryClassifier: unparseable LLM output %r, falling back to out_of_scope", raw)
             return QueryCategory.OUT_OF_SCOPE
         return QueryCategory(match.group(0))
 

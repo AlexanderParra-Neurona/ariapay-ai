@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Run locally (not on the VM). Requires `gcloud` installed and `gcloud auth login` done.
-# Fill in the 4 values below, then: bash deploy/gcp/gcp_setup.sh
+# Defaults below target the staging VM; override via env vars if needed, then: bash deploy/gcp/gcp_setup.sh
 set -euo pipefail
 
-PROJECT_ID="neurona-491301"
-VM_NAME="instance-20260421-014232"
-ZONE="us-central1-f"          # e.g. asia-southeast2-a
-REGION="us-central1"        # e.g. asia-southeast2 (zone without the trailing -a/-b/-c)
+PROJECT_ID="${PROJECT_ID:-neurona-491301}"
+VM_NAME="${VM_NAME:-instance-20260421-014232}"
+ZONE="${ZONE:-us-central1-f}"          # e.g. asia-southeast2-a
+REGION="${REGION:-us-central1}"        # e.g. asia-southeast2 (zone without the trailing -a/-b/-c)
 
 gcloud config set project "$PROJECT_ID"
 

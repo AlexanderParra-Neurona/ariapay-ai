@@ -30,10 +30,10 @@ from app.services.retrieval import get_hybrid_retriever
 router = APIRouter()
 
 
-def _answer_from_docs(question: str) -> tuple[str, list[Citation], float | None]:
+def _answer_from_docs(question: str) -> tuple[str, list[Citation], float | None, bool]:
     hits = get_hybrid_retriever().search(question)
     if not hits:
-        return MSG_NO_DOCS_FOUND, [], None
+        return MSG_NO_DOCS_FOUND, [], None, True
 
     docs = [doc for doc, _ in hits]
     citations = [
@@ -54,7 +54,7 @@ def _answer_from_docs(question: str) -> tuple[str, list[Citation], float | None]
         [{"role": Role.USER, "content": prompt}],
         metadata={TRACE_NAME_METADATA_KEY: TraceName.CHAT_ANSWER},
     )
-    return answer, citations, confidence
+    return answer, citations, confidence, False
 
 
 def _format_timestamp(timestamp: str) -> str:
@@ -177,13 +177,13 @@ async def chat(req: ChatRequest):
             policy_decision=PolicyDecision.DECLINED_OUT_OF_SCOPE,
         )
 
-    answer, citations, confidence = _answer_from_docs(req.question)
+    answer, citations, confidence, short_circuit = _answer_from_docs(req.question)
     policy_decision = (
         PolicyDecision.ANSWERED if citations else PolicyDecision.HANDOFF_NO_DATA
     )
     return ChatResponse(
         answer=answer,
-        short_circuit=False,
+        short_circuit=short_circuit,
         category=category,
         policy_decision=policy_decision,
         citations=citations,

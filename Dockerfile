@@ -19,7 +19,7 @@ RUN groupadd --gid 1000 app && useradd --uid 1000 --gid app --no-create-home app
 
 COPY --from=builder --chown=app:app /app/.venv ./.venv
 COPY --from=builder --chown=app:app /app/app ./app
-RUN echo "deepinfra" > /app/.llm-provider && chown app:app /app/.llm-provider
+COPY --chown=app:app .llm-provider ./.llm-provider
 
 ENV PATH="/app/.venv/bin:$PATH"
 USER app

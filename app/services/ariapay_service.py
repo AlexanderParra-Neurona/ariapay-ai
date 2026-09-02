@@ -1,3 +1,5 @@
+import logging
+
 import httpx
 
 from app.config import settings
@@ -11,6 +13,9 @@ from app.constants import (
     HTTP_STATUS_UNAUTHORIZED,
     HTTP_TIMEOUT_DEFAULT_SECONDS,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 class AriapayAuthError(Exception):
@@ -32,8 +37,10 @@ async def get_me(access_token: str) -> dict:
             timeout=HTTP_TIMEOUT_DEFAULT_SECONDS,
         )
     if resp.status_code == HTTP_STATUS_UNAUTHORIZED:
+        logger.warning("get_me: invalid or expired access_token")
         raise AriapayAuthError("Missing or invalid access_token")
     if resp.status_code != HTTP_STATUS_OK:
+        logger.error("get_me: Ariapay API returned %s", resp.status_code)
         raise AriapayAPIError(f"Ariapay API returned {resp.status_code}")
     return resp.json()["user"]
 
@@ -51,8 +58,10 @@ async def login(phone_number: str, country_code: str, password: str) -> str:
             timeout=HTTP_TIMEOUT_DEFAULT_SECONDS,
         )
     if resp.status_code == HTTP_STATUS_UNAUTHORIZED:
+        logger.warning("login: wrong phone number or password")
         raise AriapayAuthError("Wrong phone number or password")
     if resp.status_code != HTTP_STATUS_OK:
+        logger.error("login: Ariapay API returned %s", resp.status_code)
         raise AriapayAPIError(f"Ariapay API returned {resp.status_code}")
     return resp.json()["user"]["passcode_token"]
 
@@ -69,7 +78,9 @@ async def verify_passcode(token: str, passcode: str) -> dict:
             timeout=HTTP_TIMEOUT_DEFAULT_SECONDS,
         )
     if resp.status_code == HTTP_STATUS_UNAUTHORIZED:
+        logger.warning("verify_passcode: wrong passcode or invalid token")
         raise AriapayAuthError("Wrong passcode or invalid token")
     if resp.status_code != HTTP_STATUS_OK:
+        logger.error("verify_passcode: Ariapay API returned %s", resp.status_code)
         raise AriapayAPIError(f"Ariapay API returned {resp.status_code}")
     return resp.json()["token"]

@@ -34,6 +34,8 @@ TRANSACTIONS_VECTOR = TRANSACTIONS_VECTOR_NAME
 
 class QdrantService:
     def __init__(self, embeddings: Embeddings | None = None) -> None:
+        if not settings.QDRANT_API_KEY:
+            raise RuntimeError("QDRANT_API_KEY is not set")
         self._client = _QdrantClient(
             url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY
         )

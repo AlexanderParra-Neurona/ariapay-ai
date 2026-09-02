@@ -15,6 +15,10 @@ fi
 # assigns/routes its own port via railway.json, so it's not pushed.
 SKIP_KEYS=("APP_PORT")
 
+echo "About to push every var in $ENV_FILE to Railway (including credentials like LOGIN_PASSWORD). Review $ENV_FILE now if unsure."
+read -rp "Continue? [y/N] " confirm
+[ "$confirm" = "y" ] || [ "$confirm" = "Y" ] || { echo "Aborted."; exit 1; }
+
 while IFS='=' read -r key value; do
   [ -z "$key" ] && continue
   case "$key" in
