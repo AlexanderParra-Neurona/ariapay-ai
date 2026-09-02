@@ -27,14 +27,14 @@ make seed
 
 ## Langfuse tracing (optional)
 
-Set `LANGFUSE_ENABLED=true` and `LANGFUSE_PUBLIC_KEY`/`LANGFUSE_SECRET_KEY` in `.env` to trace chat/embedding calls. Infra-only vars (db creds, salt, init org/user) live in `.env.langfuse` — copy `.env.langfuse.example` to get started. To self-host Langfuse:
+Uses [Langfuse Cloud](https://cloud.langfuse.com) (managed) to trace chat/embedding calls. Sign up, create a project, and set in `.env`:
 
 ```bash
-cp .env.langfuse.example .env.langfuse
-make up   # or: docker compose --env-file .env --env-file .env.langfuse -f docker-compose.yml -f docker/docker-compose.langfuse.yml up --build -d
+LANGFUSE_ENABLED=true
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_HOST=https://cloud.langfuse.com   # or https://jp.cloud.langfuse.com / https://us.cloud.langfuse.com for a regional deployment
 ```
-
-Org/project/user/API keys are auto-provisioned on first boot from `.env.langfuse`'s `LANGFUSE_INIT_*` vars plus `.env`'s `LANGFUSE_PUBLIC_KEY`/`LANGFUSE_SECRET_KEY` — no manual signup. Log into `http://localhost:3000` with `LANGFUSE_INIT_USER_EMAIL`/`LANGFUSE_INIT_USER_PASSWORD`.
 
 ## How the cache works
 
