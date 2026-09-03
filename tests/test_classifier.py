@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 
 from app.services.classification.classifier import QueryClassifier
@@ -16,7 +18,9 @@ class StubLLMService(LLMService):
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         raise NotImplementedError
 
-    def chat(self, messages: list[dict[str, str]]) -> str:
+    def chat(
+        self, messages: list[dict[str, str]], metadata: dict[str, Any] | None = None
+    ) -> str:
         self.last_messages = messages
         return self._reply
 

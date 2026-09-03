@@ -3,7 +3,6 @@ from pathlib import Path
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -19,9 +18,6 @@ def _read_llm_provider(default: str = "ollama") -> str:
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    REDIS_URL: str = "changeme"
-    FAQ_CACHE_TTL_SECONDS: int = 3600
-
     API_URL: str = "changeme"
     ARIAPAY_API_URL: str = "changeme"
 
@@ -31,6 +27,8 @@ class Settings(BaseSettings):
     LOGIN_PASSCODE: str = "changeme"
 
     LLM_PROVIDER: str = Field(default_factory=_read_llm_provider)
+
+    APP_ENV: str = "development"
 
     OLLAMA_URL: str = "changeme"
     OLLAMA_CHAT_MODEL: str = "changeme"
@@ -43,14 +41,17 @@ class Settings(BaseSettings):
     DEEPINFRA_EMBED_DIM: int = 4096
 
     QDRANT_URL: str = "changeme"
+    QDRANT_API_KEY: str | None = None
     QDRANT_COLLECTION: str = "changeme"
+
+    LANGFUSE_ENABLED: bool = False
+    LANGFUSE_PUBLIC_KEY: str = "changeme"
+    LANGFUSE_SECRET_KEY: str = "changeme"
+    LANGFUSE_HOST: str = "http://localhost:3000"
 
     RETRIEVAL_TOP_K: int = 5
     RETRIEVAL_CANDIDATE_POOL: int = 20
     TRANSACTIONS_MAX_ALL: int = 200
-
-    LOG_DIR: str = "logs"
-    LOG_LEVEL: str = "INFO"
 
     @property
     def CHAT_MODEL(self) -> str:

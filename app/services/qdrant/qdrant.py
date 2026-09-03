@@ -9,20 +9,36 @@ from qdrant_client.http.models import (
     FieldCondition,
     Filter,
     MatchValue,
+    PayloadSchemaType,
     VectorParams,
 )
 
 from app.config import settings
+from app.constants import (
+    CURRENCY_PREFIX,
+    DEFAULT_SIMILARITY_SEARCH_K,
+    DEFAULT_TRANSACTIONS_MAX_RESULTS,
+    DOCS_VECTOR_NAME,
+    POINT_ID_HASH_LENGTH,
+    POINT_TYPE_DOC,
+    POINT_TYPE_TRANSACTION,
+    QDRANT_SCROLL_BATCH_SIZE,
+    TRANSACTIONS_VECTOR_NAME,
+)
 from app.services.llm import LLMServiceEmbeddings, get_llm_service
 
 COLLECTION_NAME = settings.QDRANT_COLLECTION
-DOCS_VECTOR = "docs"
-TRANSACTIONS_VECTOR = "transactions"
+DOCS_VECTOR = DOCS_VECTOR_NAME
+TRANSACTIONS_VECTOR = TRANSACTIONS_VECTOR_NAME
 
 
 class QdrantService:
     def __init__(self, embeddings: Embeddings | None = None) -> None:
-        self._client = _QdrantClient(url=settings.QDRANT_URL)
+        if not settings.QDRANT_API_KEY:
+            raise RuntimeError("QDRANT_API_KEY is not set")
+        self._client = _QdrantClient(
+            url=settings.QDRANT_URL, api_key=settings.QDRANT_API_KEY
+        )
         self._embeddings = embeddings or LLMServiceEmbeddings(get_llm_service())
         self._ensure_collection()
         self._docs_store = QdrantVectorStore(
@@ -41,6 +57,7 @@ class QdrantService:
     def _ensure_collection(self) -> None:
         if self._client.collection_exists(COLLECTION_NAME):
             self._verify_schema()
+            self._ensure_payload_indexes()
             return
         if settings.EMBED_DIM <= 0:
             raise RuntimeError(
@@ -59,6 +76,15 @@ class QdrantService:
                 ),
             },
         )
+        self._ensure_payload_indexes()
+
+    def _ensure_payload_indexes(self) -> None:
+        for field_name in ("metadata.type", "metadata.category"):
+            self._client.create_payload_index(
+                collection_name=COLLECTION_NAME,
+                field_name=field_name,
+                field_schema=PayloadSchemaType.KEYWORD,
+            )
 
     def _verify_schema(self) -> None:
         vectors = self._client.get_collection(COLLECTION_NAME).config.params.vectors
@@ -78,7 +104,7 @@ class QdrantService:
     @staticmethod
     def _point_id(text: str) -> str:
         normalized = text.strip().lower()
-        return hashlib.sha256(normalized.encode()).hexdigest()[:32]
+        return hashlib.sha256(normalized.encode()).hexdigest()[:POINT_ID_HASH_LENGTH]
 
     def upsert_doc_chunk(self, source: str, heading: str, text: str) -> None:
         self.upsert_doc_chunks([(source, heading, text)])
@@ -89,7 +115,7 @@ class QdrantService:
         docs = [
             Document(
                 page_content=f"{heading}\n\n{text}" if heading else text,
-                metadata={"type": "doc", "source": source, "heading": heading},
+                metadata={"type": POINT_TYPE_DOC, "source": source, "heading": heading},
             )
             for source, heading, text in chunks
         ]
@@ -108,9 +134,12 @@ class QdrantService:
             return
         docs = [
             Document(
-                page_content=f"{merchant_name} ({category}) - Rp{price:,.0f} on {timestamp}",
+                page_content=(
+                    f"{merchant_name} ({category}) - "
+                    f"{CURRENCY_PREFIX}{price:,.0f} on {timestamp}"
+                ),
                 metadata={
-                    "type": "transaction",
+                    "type": POINT_TYPE_TRANSACTION,
                     "merchant_name": merchant_name,
                     "category": category,
                     "price": price,
@@ -125,27 +154,35 @@ class QdrantService:
         ]
         self._transactions_store.add_documents(docs, ids=ids)
 
-    def similarity_search(self, query: str, k: int = 4) -> list[Document]:
+    def similarity_search(
+        self, query: str, k: int = DEFAULT_SIMILARITY_SEARCH_K
+    ) -> list[Document]:
         return self._docs_store.similarity_search(query, k=k)
 
     def similarity_search_with_score(
-        self, query: str, k: int = 4
+        self, query: str, k: int = DEFAULT_SIMILARITY_SEARCH_K
     ) -> list[tuple[Document, float]]:
         return self._docs_store.similarity_search_with_score(query, k=k)
 
-    def similarity_search_transactions(self, query: str, k: int = 4) -> list[Document]:
+    def similarity_search_transactions(
+        self, query: str, k: int = DEFAULT_SIMILARITY_SEARCH_K
+    ) -> list[Document]:
         return self._transactions_store.similarity_search(query, k=k)
 
     def similarity_search_transactions_with_score(
-        self, query: str, k: int = 4
+        self, query: str, k: int = DEFAULT_SIMILARITY_SEARCH_K
     ) -> list[tuple[Document, float]]:
         return self._transactions_store.similarity_search_with_score(query, k=k)
 
     def get_all_transactions(
-        self, category: str | None = None, max_results: int = 200
+        self,
+        category: str | None = None,
+        max_results: int = DEFAULT_TRANSACTIONS_MAX_RESULTS,
     ) -> list[Document]:
         must = [
-            FieldCondition(key="metadata.type", match=MatchValue(value="transaction"))
+            FieldCondition(
+                key="metadata.type", match=MatchValue(value=POINT_TYPE_TRANSACTION)
+            )
         ]
         if category is not None:
             must.append(
@@ -160,7 +197,7 @@ class QdrantService:
             batch, offset = self._client.scroll(
                 self.collection_name,
                 scroll_filter=Filter(must=must),
-                limit=min(1000, max_results - len(docs)),
+                limit=min(QDRANT_SCROLL_BATCH_SIZE, max_results - len(docs)),
                 offset=offset,
                 with_payload=True,
                 with_vectors=False,

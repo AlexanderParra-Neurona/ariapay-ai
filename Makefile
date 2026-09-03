@@ -1,40 +1,24 @@
-.PHONY: up down clean build logs dev redis ui seed seed-clear scrape faq ingest-qdrant all setup-hooks
+.PHONY: up down clean build logs dev ui scrape faq ingest-qdrant all
 
-setup-hooks:
-	@git config core.hooksPath .githooks
+COMPOSE = docker compose --env-file .env -f docker-compose.yml
 
 up:
-	docker compose up --build -d
+	$(COMPOSE) up --build -d
 
 down:
-	docker compose down
+	$(COMPOSE) down
 
 clean:
-	docker compose down -v
-
-build:
-	docker compose build
+	$(COMPOSE) down -v
 
 logs:
-	docker compose logs -f
+	$(COMPOSE) logs -f
 
-all:
-	$(MAKE) -j3 redis dev ui
-
-redis:
-	docker run --rm -p 6379:6379 --name ariabot-redis redis/redis-stack-server:latest
-
-dev: setup-hooks
+dev:
 	uv run uvicorn app.main:app --reload
 
-ui: setup-hooks
+ui:
 	uv run python -m app.ui
-
-seed:
-	uv run python scripts/seed_redis.py
-
-seed-clear:
-	uv run python scripts/seed_redis.py --clear
 
 scrape:
 	uv run python scripts/scrape_pages.py

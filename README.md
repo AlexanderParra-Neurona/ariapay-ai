@@ -12,7 +12,7 @@ docker compose up --build
 make seed   # populate dummy FAQ data
 ```
 
-App at `http://localhost:8000`. Endpoints: `GET /health`, `POST /chat` (`{"question": "..."}`).
+App at `http://localhost:8000`. Endpoints: `GET /v1/health`, `POST /v1/chat` (`{"question": "..."}`).
 
 Redis GUI (redis-commander) at `http://localhost:8081`.
 
@@ -23,6 +23,17 @@ uv sync
 make redis  # redis-stack-server, needed for vector search
 uv run uvicorn app.main:app --reload
 make seed
+```
+
+## Langfuse tracing (optional)
+
+Uses [Langfuse Cloud](https://cloud.langfuse.com) (managed) to trace chat/embedding calls. Sign up, create a project, and set in `.env`:
+
+```bash
+LANGFUSE_ENABLED=true
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_HOST=https://cloud.langfuse.com   # or https://jp.cloud.langfuse.com / https://us.cloud.langfuse.com for a regional deployment
 ```
 
 ## How the cache works

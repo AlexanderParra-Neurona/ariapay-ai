@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-09-02
+
+#### Changed
+- Docker image rebuilt as multi-stage (builder/runtime split) — production image no longer ships the `uv` toolchain or dev-only tooling, cutting image size ~57% (1.63GB → 723MB).
+- Healthcheck now uses Python's `urllib` instead of `curl`, dropping the need to install `curl` in the runtime image.
+- `fastembed`, `gradio`, `langchain-community`, and `requests` moved out of production dependencies into the dev group — `gradio`/`requests` are only used by the Gradio UI (not required for the API service), and `fastembed`/`langchain-community` were unused.
+
+### 2026-09-01
+
+#### Removed
+- Redis and the FAQ cache layer removed (unused after cache path dropped) — `redis` dependency, service, config vars, and Docker Compose wiring all removed.
+
+### 2026-08-31
+
+#### Added
+- `docs/API.md` API reference covering auth, chat, and health endpoints.
+- Dedicated `qdrant-ingest` container runs document/transaction ingestion as part of `docker compose up`, instead of a manual script step.
+
+#### Changed
+- All API endpoints now live under a `/v1` prefix (e.g. `/chat` → `/v1/chat`, `/health` → `/v1/health`) — existing API consumers must update request paths.
+- `app/main.py` split into per-resource routers (`app/routers/v1/{auth,chat,health}.py`) and request/response schemas (`app/schemas/`), replacing the single-file endpoint definitions.
+- `LLMService.chat` metadata now passed through from query and transaction-scope classifiers, labeling their Langfuse traces individually.
+- `docker/init_qdrant.sh` and `docker/pull_models.sh` (formerly under `scripts/`) relative paths updated in `docker-compose.yml`.
+
+#### Removed
+- Structured request/API-call logging (`app/logging_config.py`, `LOG_DIR`/`LOG_LEVEL` config) removed, along with all logger calls in the ariapay client, classifiers, and retrieval services.
+
+### 2026-08-28
+
+#### Added
+- Langfuse tracing for chat/embedding calls, wired through LiteLLM's native callback (`LANGFUSE_ENABLED=true` + `LANGFUSE_PUBLIC_KEY`/`LANGFUSE_SECRET_KEY`/`LANGFUSE_HOST`).
+- `docker-compose.langfuse.yml` for running a self-hosted Langfuse stack alongside the app.
+- `LLMService.chat` now accepts optional `metadata` so call sites (query classifier, transaction scope classifier, doc answer) label their own Langfuse traces.
+
+#### Changed
+- Langfuse stack infra vars (db/queue/object-store creds, salt, init org/user) split out of `.env` into `.env.langfuse`; `LANGFUSE_ENABLED`/`PUBLIC_KEY`/`SECRET_KEY`/`HOST` stay in `.env` since the app reads those too. `make up`/`down`/`clean`/`build`/`logs` pass both via `--env-file`.
+- Hardcoded literals in `docker-compose.langfuse.yml` (postgres/clickhouse/minio/redis creds, S3 bucket, salt, encryption key, nextauth secret) now read from env vars with matching defaults, instead of being baked into the compose file.
+
+#### Fixed
+- Pinned `langfuse<3` — litellm's langfuse integration reads `langfuse.version.__version__`, a module path removed in langfuse SDK v3+, causing every LLM call to error.
+- Set `LANGFUSE_MIGRATION_V4_WRITE_MODE=dual` on `langfuse-web`/`langfuse-worker` — the v4 server defaults to `events_only` and rejects the legacy `trace-create`/`generation-create` events the pinned v2 SDK sends.
+
 ### 2026-08-27
 
 #### Added

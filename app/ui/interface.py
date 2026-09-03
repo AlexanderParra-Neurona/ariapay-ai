@@ -1,8 +1,9 @@
 import gradio as gr
 
+from app.constants import APP_TITLE
 from app.ui.client import login, respond
 
-with gr.Blocks(title="ariabot") as demo:
+with gr.Blocks(title=APP_TITLE) as demo:
     access_token_box = gr.Textbox(label="Access Token", type="password")
     login_button = gr.Button("Login")
     login_status = gr.Markdown()

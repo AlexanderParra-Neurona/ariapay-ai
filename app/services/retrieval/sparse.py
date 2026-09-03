@@ -1,12 +1,9 @@
-import logging
-
 from langchain_core.documents import Document
 from qdrant_client.http.models import FieldCondition, Filter, MatchValue
 from rank_bm25 import BM25Okapi
 
+from app.constants import POINT_TYPE_DOC, QDRANT_SCROLL_BATCH_SIZE
 from app.services.qdrant.qdrant import QdrantService
-
-logger = logging.getLogger("ariabot.retrieval.sparse")
 
 
 def _tokenize(text: str) -> list[str]:
@@ -28,11 +25,11 @@ class SparseRetriever:
                 scroll_filter=Filter(
                     must=[
                         FieldCondition(
-                            key="metadata.type", match=MatchValue(value="doc")
+                            key="metadata.type", match=MatchValue(value=POINT_TYPE_DOC)
                         )
                     ]
                 ),
-                limit=1000,
+                limit=QDRANT_SCROLL_BATCH_SIZE,
                 offset=offset,
                 with_payload=True,
                 with_vectors=False,
@@ -51,13 +48,10 @@ class SparseRetriever:
         self._docs = docs
         corpus_tokens = [_tokenize(d.page_content) for d in docs]
         self._bm25 = BM25Okapi(corpus_tokens) if corpus_tokens else None
-        logger.info("sparse_corpus_loaded doc_count=%d", len(docs))
 
     def search(self, query: str, top_k: int) -> list[tuple[Document, float]]:
         if self._bm25 is None:
             return []
         scores = self._bm25.get_scores(_tokenize(query))
-        ranked = sorted(
-            range(len(scores)), key=lambda i: scores[i], reverse=True
-        )
+        ranked = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)
         return [(self._docs[i], scores[i]) for i in ranked[:top_k] if scores[i] > 0]

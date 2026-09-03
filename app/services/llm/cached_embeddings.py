@@ -33,9 +33,7 @@ class FileCachedEmbeddings(Embeddings):
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         keys = [self._key(text) for text in texts]
         missing = [
-            (text, key)
-            for text, key in zip(texts, keys)
-            if key not in self._cache
+            (text, key) for text, key in zip(texts, keys) if key not in self._cache
         ]
         if missing:
             fresh = self._embeddings.embed_documents([text for text, _ in missing])
