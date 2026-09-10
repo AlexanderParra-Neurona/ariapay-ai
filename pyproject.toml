@@ -32,4 +32,4 @@ dev = [
 ]
 
 [tool.uv.sources]
-custodia = { path = "./custodia-sdk", editable = true }
+custodia = { git = "https://github.com/AlexanderParra-Neurona/custodia.git", branch = "main", subdirectory = "sdk-python" }
