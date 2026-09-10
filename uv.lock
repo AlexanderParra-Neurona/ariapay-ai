@@ -201,7 +201,7 @@ name = "ariabot"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "custodia" },
+    { name = "custodia-sdk" },
     { name = "fastapi" },
     { name = "httpx" },
     { name = "langchain-qdrant" },
@@ -230,7 +230,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "custodia", git = "https://github.com/AlexanderParra-Neurona/custodia.git?subdirectory=sdk-python&branch=main" },
+    { name = "custodia-sdk" },
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "langchain-qdrant", specifier = ">=1.1.0" },
@@ -645,13 +645,17 @@ wheels = [
 ]
 
 [[package]]
-name = "custodia"
+name = "custodia-sdk"
 version = "0.1.0"
-source = { git = "https://github.com/AlexanderParra-Neurona/custodia.git?subdirectory=sdk-python&branch=main#a931099f98718102a99d289d336521bba1888d94" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
     { name = "opentelemetry-exporter-otlp-proto-http" },
     { name = "opentelemetry-sdk" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4f/36/0d9f1d59c7723c107924a02a64dd3b42b699269482af2a760644d1960686/custodia_sdk-0.1.0.tar.gz", hash = "sha256:29ca0c593afe4e44192f2f96e2346ca9ae38c3f71ee559196e77faa88ad0e8b6", size = 5072, upload-time = "2026-09-10T08:49:14.179Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/30/3b/88311cf8caefce03eb234042e7a2d59610648c33d52943dc7d94dfb9245f/custodia_sdk-0.1.0-py3-none-any.whl", hash = "sha256:a8b14f3f7503f3c9409171307a291fabac34f67e3d4dafcf9e7c843828ac1222", size = 6940, upload-time = "2026-09-10T08:49:12.932Z" },
 ]
 
 [[package]]
