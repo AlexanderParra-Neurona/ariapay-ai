@@ -1,6 +1,8 @@
+from custodia import trace
 from langchain_core.documents import Document
 
 from app.config import settings
+from app.constants import TraceName
 from app.services.classification.types import TransactionScope
 from app.services.qdrant.qdrant import QdrantService
 from app.services.retrieval.fusion import rrf_fuse
@@ -12,6 +14,7 @@ class HybridRetriever:
         self._qdrant_service = qdrant_service
         self._sparse = SparseRetriever(qdrant_service)
 
+    @trace(name=TraceName.HYBRID_RETRIEVER_SEARCH.value)
     def search(
         self, query: str, top_k: int | None = None
     ) -> list[tuple[Document, float]]:

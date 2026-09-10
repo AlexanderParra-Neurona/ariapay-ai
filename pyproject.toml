@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
+    "custodia",
     "fastapi>=0.141.1",
     "httpx>=0.28.1",
     "langchain-qdrant>=1.1.0",
@@ -29,3 +30,6 @@ dev = [
     "requests>=2.34.2",
     "ruff>=0.16.5",
 ]
+
+[tool.uv.sources]
+custodia = { path = "./custodia-sdk", editable = true }

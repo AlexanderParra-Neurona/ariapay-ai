@@ -15,7 +15,7 @@ logs:
 	$(COMPOSE) logs -f
 
 dev:
-	uv run uvicorn app.main:app --reload
+	uv run uvicorn app.main:app --reload --port 8001
 
 ui:
 	uv run python -m app.ui

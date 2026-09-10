@@ -1,12 +1,14 @@
+from custodia import trace
 from langchain_core.documents import Document
 
-from app.constants import RRF_K_CONSTANT
+from app.constants import RRF_K_CONSTANT, TraceName
 
 
 def _doc_key(doc: Document) -> tuple:
     return (doc.metadata.get("source"), doc.metadata.get("heading"))
 
 
+@trace(name=TraceName.RRF_FUSION.value)
 def rrf_fuse(
     rankings: list[list[tuple[Document, float]]], k: int = RRF_K_CONSTANT
 ) -> list[tuple[Document, float]]:

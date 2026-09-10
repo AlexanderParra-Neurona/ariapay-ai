@@ -2,6 +2,7 @@ from datetime import datetime
 
 from fastapi import APIRouter
 from langchain_core.documents import Document
+from custodia import trace
 
 from app.constants import (
     CURRENCY_PREFIX,
@@ -29,7 +30,7 @@ from app.services.retrieval import get_hybrid_retriever
 
 router = APIRouter()
 
-
+@trace(name=TraceName.CHAT_ANSWER.value)
 def _answer_from_docs(question: str) -> tuple[str, list[Citation], float | None, bool]:
     hits = get_hybrid_retriever().search(question)
     if not hits:
