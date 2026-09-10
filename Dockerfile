@@ -5,7 +5,6 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv==0.9.7
 
 COPY pyproject.toml uv.lock ./
-COPY custodia-sdk ./custodia-sdk
 RUN uv sync --frozen --no-dev --no-install-project
 
 COPY app ./app
@@ -20,7 +19,6 @@ RUN groupadd --gid 1000 app && useradd --uid 1000 --gid app --no-create-home app
 
 COPY --from=builder --chown=app:app /app/.venv ./.venv
 COPY --from=builder --chown=app:app /app/app ./app
-COPY --from=builder --chown=app:app /app/custodia-sdk ./custodia-sdk
 COPY --chown=app:app .llm-provider ./.llm-provider
 
 ENV PATH="/app/.venv/bin:$PATH"

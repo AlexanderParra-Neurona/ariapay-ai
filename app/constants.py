@@ -43,6 +43,16 @@ class TraceName(str, Enum):
     HYBRID_RETRIEVER_SEARCH = "hybrid_retriever_search"
     SPARSE_RETRIEVER_SEARCH = "sparse_retriever_search"
     RRF_FUSION = "rrf_fusion"
+    LITELLM_CHAT = "litellm_chat"
+    LITELLM_EMBED = "litellm_embed"
+    QDRANT_UPSERT_DOCS = "qdrant_upsert_docs"
+    QDRANT_UPSERT_TRANSACTIONS = "qdrant_upsert_transactions"
+    QDRANT_SIMILARITY_SEARCH = "qdrant_similarity_search"
+    QDRANT_SIMILARITY_SEARCH_TRANSACTIONS = "qdrant_similarity_search_transactions"
+    QDRANT_GET_ALL_TRANSACTIONS = "qdrant_get_all_transactions"
+    ARIAPAY_GET_ME = "ariapay_get_me"
+    ARIAPAY_LOGIN = "ariapay_login"
+    ARIAPAY_VERIFY_PASSCODE = "ariapay_verify_passcode"
 
 
 TRACE_NAME_METADATA_KEY = "trace_name"
