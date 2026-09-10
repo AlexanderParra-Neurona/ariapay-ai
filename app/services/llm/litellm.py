@@ -1,7 +1,7 @@
-import os
 from typing import Any
 
 import litellm
+from custodia import trace
 
 from app.config import settings
 from app.constants import (
@@ -9,17 +9,11 @@ from app.constants import (
     OPENAI_MODEL_PREFIX,
     TAGS_METADATA_KEY,
     LLMProvider,
+    TraceName,
 )
 from app.services.llm.base import LLMService
 
 _ENV_TAG = f"env:{settings.APP_ENV}"
-
-if settings.LANGFUSE_ENABLED:
-    os.environ.setdefault("LANGFUSE_PUBLIC_KEY", settings.LANGFUSE_PUBLIC_KEY)
-    os.environ.setdefault("LANGFUSE_SECRET_KEY", settings.LANGFUSE_SECRET_KEY)
-    os.environ.setdefault("LANGFUSE_HOST", settings.LANGFUSE_HOST)
-    litellm.success_callback = ["langfuse"]
-    litellm.failure_callback = ["langfuse"]
 
 
 class LiteLLMService(LLMService):
@@ -51,6 +45,7 @@ class LiteLLMService(LLMService):
     def embed(self, text: str) -> list[float]:
         return self.embed_documents([text])[0]
 
+    @trace(name=TraceName.LITELLM_EMBED.value)
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         resp = litellm.embedding(
             model=self._embed_model,
@@ -60,6 +55,7 @@ class LiteLLMService(LLMService):
         )
         return [item["embedding"] for item in resp.data]
 
+    @trace(name=TraceName.LITELLM_CHAT.value)
     def chat(
         self, messages: list[dict[str, str]], metadata: dict[str, Any] | None = None
     ) -> str:

@@ -1,6 +1,7 @@
 import logging
 
 import httpx
+from custodia import atrace_span
 
 from app.config import settings
 from app.constants import (
@@ -12,6 +13,7 @@ from app.constants import (
     HTTP_STATUS_OK,
     HTTP_STATUS_UNAUTHORIZED,
     HTTP_TIMEOUT_DEFAULT_SECONDS,
+    TraceName,
 )
 
 
@@ -27,60 +29,63 @@ class AriapayAPIError(Exception):
 
 
 async def get_me(access_token: str) -> dict:
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            f"{settings.ARIAPAY_API_URL}{ARIAPAY_ME_PATH}",
-            headers={
-                **ARIAPAY_PLATFORM_HEADERS,
-                "Authorization": f"{BEARER_PREFIX} {access_token}",
-            },
-            timeout=HTTP_TIMEOUT_DEFAULT_SECONDS,
-        )
-    if resp.status_code == HTTP_STATUS_UNAUTHORIZED:
-        logger.warning("get_me: invalid or expired access_token")
-        raise AriapayAuthError("Missing or invalid access_token")
-    if resp.status_code != HTTP_STATUS_OK:
-        logger.error("get_me: Ariapay API returned %s", resp.status_code)
-        raise AriapayAPIError(f"Ariapay API returned {resp.status_code}")
-    return resp.json()["user"]
+    async with atrace_span(TraceName.ARIAPAY_GET_ME.value):
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"{settings.ARIAPAY_API_URL}{ARIAPAY_ME_PATH}",
+                headers={
+                    **ARIAPAY_PLATFORM_HEADERS,
+                    "Authorization": f"{BEARER_PREFIX} {access_token}",
+                },
+                timeout=HTTP_TIMEOUT_DEFAULT_SECONDS,
+            )
+        if resp.status_code == HTTP_STATUS_UNAUTHORIZED:
+            logger.warning("get_me: invalid or expired access_token")
+            raise AriapayAuthError("Missing or invalid access_token")
+        if resp.status_code != HTTP_STATUS_OK:
+            logger.error("get_me: Ariapay API returned %s", resp.status_code)
+            raise AriapayAPIError(f"Ariapay API returned {resp.status_code}")
+        return resp.json()["user"]
 
 
 async def login(phone_number: str, country_code: str, password: str) -> str:
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f"{settings.ARIAPAY_API_URL}{ARIAPAY_LOGIN_PATH}",
-            json={
-                "phone_number": phone_number,
-                "country_code": country_code,
-                "password": password,
-            },
-            headers=ARIAPAY_PLATFORM_HEADERS,
-            timeout=HTTP_TIMEOUT_DEFAULT_SECONDS,
-        )
-    if resp.status_code == HTTP_STATUS_UNAUTHORIZED:
-        logger.warning("login: wrong phone number or password")
-        raise AriapayAuthError("Wrong phone number or password")
-    if resp.status_code != HTTP_STATUS_OK:
-        logger.error("login: Ariapay API returned %s", resp.status_code)
-        raise AriapayAPIError(f"Ariapay API returned {resp.status_code}")
-    return resp.json()["user"]["passcode_token"]
+    async with atrace_span(TraceName.ARIAPAY_LOGIN.value):
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"{settings.ARIAPAY_API_URL}{ARIAPAY_LOGIN_PATH}",
+                json={
+                    "phone_number": phone_number,
+                    "country_code": country_code,
+                    "password": password,
+                },
+                headers=ARIAPAY_PLATFORM_HEADERS,
+                timeout=HTTP_TIMEOUT_DEFAULT_SECONDS,
+            )
+        if resp.status_code == HTTP_STATUS_UNAUTHORIZED:
+            logger.warning("login: wrong phone number or password")
+            raise AriapayAuthError("Wrong phone number or password")
+        if resp.status_code != HTTP_STATUS_OK:
+            logger.error("login: Ariapay API returned %s", resp.status_code)
+            raise AriapayAPIError(f"Ariapay API returned {resp.status_code}")
+        return resp.json()["user"]["passcode_token"]
 
 
 async def verify_passcode(token: str, passcode: str) -> dict:
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(
-            f"{settings.ARIAPAY_API_URL}{ARIAPAY_PASSCODE_VERIFY_PATH}",
-            json={"passcode": passcode},
-            headers={
-                **ARIAPAY_PLATFORM_HEADERS,
-                "Authorization": f"{BEARER_PREFIX} {token}",
-            },
-            timeout=HTTP_TIMEOUT_DEFAULT_SECONDS,
-        )
-    if resp.status_code == HTTP_STATUS_UNAUTHORIZED:
-        logger.warning("verify_passcode: wrong passcode or invalid token")
-        raise AriapayAuthError("Wrong passcode or invalid token")
-    if resp.status_code != HTTP_STATUS_OK:
-        logger.error("verify_passcode: Ariapay API returned %s", resp.status_code)
-        raise AriapayAPIError(f"Ariapay API returned {resp.status_code}")
-    return resp.json()["token"]
+    async with atrace_span(TraceName.ARIAPAY_VERIFY_PASSCODE.value):
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(
+                f"{settings.ARIAPAY_API_URL}{ARIAPAY_PASSCODE_VERIFY_PATH}",
+                json={"passcode": passcode},
+                headers={
+                    **ARIAPAY_PLATFORM_HEADERS,
+                    "Authorization": f"{BEARER_PREFIX} {token}",
+                },
+                timeout=HTTP_TIMEOUT_DEFAULT_SECONDS,
+            )
+        if resp.status_code == HTTP_STATUS_UNAUTHORIZED:
+            logger.warning("verify_passcode: wrong passcode or invalid token")
+            raise AriapayAuthError("Wrong passcode or invalid token")
+        if resp.status_code != HTTP_STATUS_OK:
+            logger.error("verify_passcode: Ariapay API returned %s", resp.status_code)
+            raise AriapayAPIError(f"Ariapay API returned {resp.status_code}")
+        return resp.json()["token"]
