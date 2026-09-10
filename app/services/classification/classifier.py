@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+from custodia import trace
 
 from app.constants import Role, SpendingCategory, TraceName, TRACE_NAME_METADATA_KEY
 from app.services.classification.types import QueryCategory, TransactionScope
@@ -25,6 +26,7 @@ class QueryClassifier:
     def __init__(self, llm_service: LLMService) -> None:
         self._llm_service = llm_service
 
+    @trace(name=TraceName.QUERY_CLASSIFIER.value)
     def classify(self, question: str) -> QueryCategory:
         messages = [
             {"role": Role.SYSTEM, "content": _SYSTEM_PROMPT},
@@ -68,6 +70,7 @@ class TransactionScopeClassifier:
     def __init__(self, llm_service: LLMService) -> None:
         self._llm_service = llm_service
 
+    @trace(name=TraceName.TRANSACTION_SCOPE_CLASSIFIER.value)
     def classify(self, question: str) -> TransactionScope:
         messages = [
             {"role": Role.SYSTEM, "content": _SCOPE_SYSTEM_PROMPT},

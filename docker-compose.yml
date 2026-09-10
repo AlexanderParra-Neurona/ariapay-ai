@@ -29,10 +29,10 @@ services:
       QDRANT_URL: ${QDRANT_URL}
       QDRANT_API_KEY: ${QDRANT_API_KEY}
       QDRANT_COLLECTION: ${QDRANT_COLLECTION}
-      LANGFUSE_ENABLED: ${LANGFUSE_ENABLED:-false}
-      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
-      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
-      LANGFUSE_HOST: ${LANGFUSE_HOST:-https://cloud.langfuse.com}
+      CUSTODIA_INGEST_URL: ${CUSTODIA_INGEST_URL:-http://host.docker.internal:8000/v1/traces}
+      CUSTODIA_API_KEY: ${CUSTODIA_API_KEY:-}
+      CUSTODIA_SERVICE_NAME: ${CUSTODIA_SERVICE_NAME:-ariabot}
+
     volumes:
       - ./.llm-provider:/app/.llm-provider:ro
     healthcheck:
@@ -45,3 +45,5 @@ services:
     logging: *default-logging
     cpus: "2"
     mem_limit: 1g
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

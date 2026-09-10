@@ -1,8 +1,9 @@
+from custodia import trace
 from langchain_core.documents import Document
 from qdrant_client.http.models import FieldCondition, Filter, MatchValue
 from rank_bm25 import BM25Okapi
 
-from app.constants import POINT_TYPE_DOC, QDRANT_SCROLL_BATCH_SIZE
+from app.constants import POINT_TYPE_DOC, QDRANT_SCROLL_BATCH_SIZE, TraceName
 from app.services.qdrant.qdrant import QdrantService
 
 
@@ -49,6 +50,7 @@ class SparseRetriever:
         corpus_tokens = [_tokenize(d.page_content) for d in docs]
         self._bm25 = BM25Okapi(corpus_tokens) if corpus_tokens else None
 
+    @trace(name=TraceName.SPARSE_RETRIEVER_SEARCH.value)
     def search(self, query: str, top_k: int) -> list[tuple[Document, float]]:
         if self._bm25 is None:
             return []
