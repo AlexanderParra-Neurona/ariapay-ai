@@ -53,6 +53,9 @@ class TraceName(str, Enum):
     ARIAPAY_GET_ME = "ariapay_get_me"
     ARIAPAY_LOGIN = "ariapay_login"
     ARIAPAY_VERIFY_PASSCODE = "ariapay_verify_passcode"
+    TOOL_SEARCH_FAQ = "search_faq"
+    TOOL_SEARCH_TRANSACTIONS = "search_transactions"
+    TOOL_GET_ACCOUNT = "get_account"
 
 
 TRACE_NAME_METADATA_KEY = "trace_name"

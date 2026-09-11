@@ -1,9 +1,10 @@
 import json
 import logging
 import re
+
 from custodia import trace
 
-from app.constants import Role, SpendingCategory, TraceName, TRACE_NAME_METADATA_KEY
+from app.constants import TRACE_NAME_METADATA_KEY, Role, SpendingCategory, TraceName
 from app.services.classification.types import QueryCategory, TransactionScope
 from app.services.llm.base import LLMService
 
@@ -42,7 +43,10 @@ class QueryClassifier:
     def _parse(raw: str) -> QueryCategory:
         match = _LABEL_PATTERN.search(raw.strip().lower())
         if not match:
-            logger.warning("QueryClassifier: unparseable LLM output %r, falling back to out_of_scope", raw)
+            logger.warning(
+                "QueryClassifier: unparseable LLM output %r, falling back to out_of_scope",
+                raw,
+            )
             return QueryCategory.OUT_OF_SCOPE
         return QueryCategory(match.group(0))
 
@@ -78,9 +82,7 @@ class TransactionScopeClassifier:
         ]
         raw = self._llm_service.chat(
             messages,
-            metadata={
-                TRACE_NAME_METADATA_KEY: TraceName.TRANSACTION_SCOPE_CLASSIFIER
-            },
+            metadata={TRACE_NAME_METADATA_KEY: TraceName.TRANSACTION_SCOPE_CLASSIFIER},
         )
         return self._parse(raw)
 

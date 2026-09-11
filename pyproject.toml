@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
-    "custodia-sdk",
+    "custodia-sdk>=0.1.1",
     "fastapi>=0.141.1",
     "httpx>=0.28.1",
     "langchain-qdrant>=1.1.0",
@@ -23,6 +23,7 @@ dev = [
     "black>=26.5.1",
     "fastembed>=0.8.0",
     "gradio>=6.24.0",
+    "instructor>=1.15.4",
     "isort>=8.0.1",
     "langchain-community==0.3.31",
     "pytest>=8.3.0",
@@ -30,3 +31,9 @@ dev = [
     "requests>=2.34.2",
     "ruff>=0.16.5",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "eval: slow RAG quality eval hitting Qdrant + DeepInfra (deselect with -m 'not eval')",
+]
+addopts = "-m 'not eval'"

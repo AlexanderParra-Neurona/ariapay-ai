@@ -16,7 +16,6 @@ from app.constants import (
     TraceName,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
