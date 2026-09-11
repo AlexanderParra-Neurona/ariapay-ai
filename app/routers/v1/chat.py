@@ -1,8 +1,8 @@
 from datetime import datetime
 
+from custodia import trace
 from fastapi import APIRouter
 from langchain_core.documents import Document
-from custodia import trace
 
 from app.constants import (
     CURRENCY_PREFIX,
@@ -13,10 +13,10 @@ from app.constants import (
     MSG_SESSION_EXPIRED,
     MSG_SIGN_IN_FOR_ACCOUNT,
     MSG_SIGN_IN_FOR_TRANSACTIONS,
-    Role,
     TIMESTAMP_DISPLAY_FORMAT,
-    TraceName,
     TRACE_NAME_METADATA_KEY,
+    Role,
+    TraceName,
 )
 from app.schemas import ChatRequest, ChatResponse, Citation, PolicyDecision
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError, get_me
@@ -29,6 +29,7 @@ from app.services.llm import get_llm_service
 from app.services.retrieval import get_hybrid_retriever
 
 router = APIRouter()
+
 
 @trace(name=TraceName.CHAT_ANSWER.value)
 def _answer_from_docs(question: str) -> tuple[str, list[Citation], float | None, bool]:

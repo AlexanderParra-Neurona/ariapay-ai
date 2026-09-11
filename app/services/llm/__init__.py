@@ -4,8 +4,8 @@ from app.services.llm.embeddings import LLMServiceEmbeddings
 from app.services.llm.factory import get_llm_service
 
 __all__ = [
+    "FileCachedEmbeddings",
     "LLMService",
     "LLMServiceEmbeddings",
-    "FileCachedEmbeddings",
     "get_llm_service",
 ]

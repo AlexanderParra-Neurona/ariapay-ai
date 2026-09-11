@@ -86,9 +86,7 @@ def test_rag_answer_meets_quality_thresholds(
     index: int, eval_scores: list[dict[str, float]]
 ) -> None:
     row = eval_scores[index]
-    failures = {
-        name: score for name, score in row.items() if score < METRIC_THRESHOLD
-    }
+    failures = {name: score for name, score in row.items() if score < METRIC_THRESHOLD}
     assert not failures, f"metrics below {METRIC_THRESHOLD}: {failures}"
 
 

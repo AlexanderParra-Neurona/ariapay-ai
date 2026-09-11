@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
-    "custodia-sdk",
+    "custodia-sdk>=0.1.1",
     "fastapi>=0.141.1",
     "httpx>=0.28.1",
     "langchain-qdrant>=1.1.0",

@@ -13,7 +13,7 @@ from ragas.metrics.collections import (
 from ragas.metrics.collections.base import BaseMetric
 
 from app.config import settings
-from app.constants import DEEPINFRA_OPENAI_BASE, LLMProvider, OPENAI_MODEL_PREFIX
+from app.constants import DEEPINFRA_OPENAI_BASE, OPENAI_MODEL_PREFIX, LLMProvider
 
 
 def _require_deepinfra_token() -> str:
@@ -29,7 +29,9 @@ def _require_deepinfra_token() -> str:
 
 def get_judge_llm() -> LiteLLMStructuredLLM:
     api_key = _require_deepinfra_token()
-    judge_client = instructor.from_litellm(litellm.acompletion, mode=instructor.Mode.JSON)
+    judge_client = instructor.from_litellm(
+        litellm.acompletion, mode=instructor.Mode.JSON
+    )
     return LiteLLMStructuredLLM(
         client=judge_client,
         model=f"{LLMProvider.DEEPINFRA.value}/{settings.DEEPINFRA_CHAT_MODEL}",
