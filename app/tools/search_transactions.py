@@ -1,3 +1,4 @@
+import re
 from typing import Annotated, Literal
 
 from custodia import trace_tool_call
@@ -13,23 +14,29 @@ from app.services.classification.types import TransactionScope
 from app.services.formatting import format_transaction_bullets
 from app.services.retrieval import get_hybrid_retriever
 
+_WANTS_ALL_PATTERN = re.compile(
+    r"\b(all|every|entire|total|how much|how many|altogether|combined)\b",
+    re.IGNORECASE,
+)
+
 _NAME = TraceName.TOOL_SEARCH_TRANSACTIONS.value
 _DESCRIPTION = (
     "Search the signed-in user's own transaction history and spending. Use for "
-    "questions about their balance, past purchases, or spending by category."
+    "questions about their balance, past purchases, or spending by category. "
+    "Set wants_all=True whenever the answer requires summing or counting every "
+    "matching transaction (e.g. total/average spend, 'how much', 'how many') - "
+    "otherwise the total will silently be based on only a partial result set."
 )
 
 _SpendingCategoryLiteral = Literal[tuple(c.value for c in SpendingCategory)]
 
 
 @trace_tool_call(name=_NAME, description=_DESCRIPTION)
-def _run(
-    query: str, wants_all: bool = False, category: str | None = None
-) -> str:
+def _run(query: str, wants_all: bool = False, category: str | None = None) -> str:
+    if not wants_all and _WANTS_ALL_PATTERN.search(query):
+        wants_all = True
     scope = TransactionScope(wants_all=wants_all, category=category)
     docs = get_hybrid_retriever().search_transactions(query, scope=scope)
-    if scope.category is not None:
-        docs = [d for d in docs if d.metadata.get("category") == scope.category]
     if not docs:
         return MSG_NO_TRANSACTIONS_FOUND
 

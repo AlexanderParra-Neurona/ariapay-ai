@@ -178,9 +178,25 @@ class QdrantService:
 
     @trace(name=TraceName.QDRANT_SIMILARITY_SEARCH_TRANSACTIONS.value)
     def similarity_search_transactions_with_score(
-        self, query: str, k: int = DEFAULT_SIMILARITY_SEARCH_K
+        self,
+        query: str,
+        k: int = DEFAULT_SIMILARITY_SEARCH_K,
+        category: str | None = None,
     ) -> list[tuple[Document, float]]:
-        return self._transactions_store.similarity_search_with_score(query, k=k)
+        filter_ = (
+            Filter(
+                must=[
+                    FieldCondition(
+                        key="metadata.category", match=MatchValue(value=category)
+                    )
+                ]
+            )
+            if category is not None
+            else None
+        )
+        return self._transactions_store.similarity_search_with_score(
+            query, k=k, filter=filter_
+        )
 
     @trace(name=TraceName.QDRANT_GET_ALL_TRANSACTIONS.value)
     def get_all_transactions(
