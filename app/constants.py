@@ -35,7 +35,6 @@ class TraceName(str, Enum):
     CHAT_ANSWER = "chat_answer"
     AGENT_LOOP = "agent_loop"
     QUERY_CLASSIFIER = "query_classifier"
-    TRANSACTION_SCOPE_CLASSIFIER = "transaction_scope_classifier"
     HYBRID_RETRIEVER_SEARCH = "hybrid_retriever_search"
     SPARSE_RETRIEVER_SEARCH = "sparse_retriever_search"
     RRF_FUSION = "rrf_fusion"

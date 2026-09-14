@@ -3,7 +3,6 @@ import asyncio
 from langchain_core.documents import Document
 
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError
-from app.services.classification.types import TransactionScope
 from app.tools import get_tools
 from app.tools.get_account import build_get_account_tool
 from app.tools.search_faq import build_search_faq_tool
@@ -19,14 +18,6 @@ class StubHybridRetriever:
 
     def search_transactions(self, query: str, scope=None, top_k: int | None = None):
         return self._docs
-
-
-class StubTransactionScopeClassifier:
-    def __init__(self, scope: TransactionScope) -> None:
-        self._scope = scope
-
-    def classify(self, question: str) -> TransactionScope:
-        return self._scope
 
 
 def test_search_faq_tool_returns_doc_content(monkeypatch) -> None:
@@ -71,15 +62,11 @@ def test_search_transactions_tool_summarizes_spend(monkeypatch) -> None:
         "app.tools.search_transactions.get_hybrid_retriever",
         lambda: StubHybridRetriever(docs),
     )
-    monkeypatch.setattr(
-        "app.tools.search_transactions.get_transaction_scope_classifier",
-        lambda: StubTransactionScopeClassifier(
-            TransactionScope(wants_all=True, category=None)
-        ),
-    )
     tool = build_search_transactions_tool()
 
-    output = asyncio.run(tool.ainvoke({"query": "how much did I spend on food?"}))
+    output = asyncio.run(
+        tool.ainvoke({"query": "how much did I spend on food?", "wants_all": True})
+    )
     assert "Rp25,000" in output
     assert "Warkop" in output
 
@@ -88,12 +75,6 @@ def test_search_transactions_tool_no_hits_returns_fallback_message(monkeypatch) 
     monkeypatch.setattr(
         "app.tools.search_transactions.get_hybrid_retriever",
         lambda: StubHybridRetriever([]),
-    )
-    monkeypatch.setattr(
-        "app.tools.search_transactions.get_transaction_scope_classifier",
-        lambda: StubTransactionScopeClassifier(
-            TransactionScope(wants_all=False, category=None)
-        ),
     )
     tool = build_search_transactions_tool()
 

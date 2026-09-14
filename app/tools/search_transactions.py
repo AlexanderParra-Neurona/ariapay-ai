@@ -1,10 +1,15 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from custodia import trace_tool_call
 from langchain_core.tools import BaseTool, tool
 
-from app.constants import CURRENCY_PREFIX, MSG_NO_TRANSACTIONS_FOUND, TraceName
-from app.services.classification import get_transaction_scope_classifier
+from app.constants import (
+    CURRENCY_PREFIX,
+    MSG_NO_TRANSACTIONS_FOUND,
+    SpendingCategory,
+    TraceName,
+)
+from app.services.classification.types import TransactionScope
 from app.services.formatting import format_transaction_bullets
 from app.services.retrieval import get_hybrid_retriever
 
@@ -14,12 +19,16 @@ _DESCRIPTION = (
     "questions about their balance, past purchases, or spending by category."
 )
 
+_SpendingCategoryLiteral = Literal[tuple(c.value for c in SpendingCategory)]
+
 
 @trace_tool_call(name=_NAME, description=_DESCRIPTION)
-def _run(query: str) -> str:
-    scope = get_transaction_scope_classifier().classify(query)
+def _run(
+    query: str, wants_all: bool = False, category: str | None = None
+) -> str:
+    scope = TransactionScope(wants_all=wants_all, category=category)
     docs = get_hybrid_retriever().search_transactions(query, scope=scope)
-    if scope is not None and scope.category is not None:
+    if scope.category is not None:
         docs = [d for d in docs if d.metadata.get("category") == scope.category]
     if not docs:
         return MSG_NO_TRANSACTIONS_FOUND
@@ -37,8 +46,22 @@ def search_transactions(
     query: Annotated[
         str, "The user's question about their transactions, in their own words."
     ],
+    wants_all: Annotated[
+        bool,
+        "True if the user asks for their full/entire/complete transaction "
+        "history or every transaction in a category (e.g. 'show all my "
+        "transactions', 'how much did I spend on food' [needs every food "
+        "transaction to sum correctly], 'list everything'). False if the user "
+        "asks for a small/recent/specific number of transactions (e.g. 'show "
+        "my last 3 transactions', 'did I buy coffee today').",
+    ] = False,
+    category: Annotated[
+        _SpendingCategoryLiteral | None,
+        "The spending category the user is asking about, if mentioned or "
+        "implied. Omit if no category applies.",
+    ] = None,
 ) -> str:
-    return _run(query)
+    return _run(query, wants_all=wants_all, category=category)
 
 
 def build_search_transactions_tool() -> BaseTool:
