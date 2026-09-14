@@ -42,7 +42,7 @@ async def _score_sample(
 
 async def _build_sample(item: dict[str, str]) -> dict[str, Any]:
     query, reference = item["query"], item["reference"]
-    answer = await run_agent(query)
+    answer, _no_data_found = await run_agent(query)
     hits = get_hybrid_retriever().search(query)
     contexts = [doc.page_content for doc, _score in hits]
     return {

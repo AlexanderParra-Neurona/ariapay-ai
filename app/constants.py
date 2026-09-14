@@ -32,7 +32,6 @@ ARIAPAY_PASSCODE_VERIFY_PATH = "/api/v1/passcode/verify"
 
 
 class TraceName(str, Enum):
-    CHAT_ANSWER = "chat_answer"
     AGENT_LOOP = "agent_loop"
     QUERY_CLASSIFIER = "query_classifier"
     HYBRID_RETRIEVER_SEARCH = "hybrid_retriever_search"
@@ -101,6 +100,11 @@ MSG_OUT_OF_SCOPE = (
     "or your account balance and transactions."
 )
 MSG_NO_DOCS_FOUND = "Sorry, I don't have information on that."
+MSG_AGENT_NO_ANSWER = "Sorry, I couldn't find an answer to that."
+MSG_AGENT_TOO_COMPLEX = (
+    "Sorry, that request needs more steps than I can take right now. "
+    "Try breaking it into smaller questions."
+)
 MSG_SIGN_IN_FOR_ACCOUNT = "Please sign in to view your account details."
 MSG_SESSION_EXPIRED = "Your session has expired. Please sign in again."
 MSG_ACCOUNT_FETCH_FAILED = "Sorry, I couldn't fetch your account details right now."

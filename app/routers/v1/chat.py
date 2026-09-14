@@ -40,10 +40,13 @@ async def chat(req: ChatRequest):
             policy_decision=PolicyDecision.DECLINED_AUTH_REQUIRED,
         )
 
-    answer = await run_agent(req.question, access_token=req.access_token)
+    answer, no_data_found = await run_agent(req.question, access_token=req.access_token)
+    policy_decision = (
+        PolicyDecision.HANDOFF_NO_DATA if no_data_found else PolicyDecision.ANSWERED
+    )
     return ChatResponse(
         answer=answer,
         short_circuit=False,
         category=category,
-        policy_decision=PolicyDecision.ANSWERED,
+        policy_decision=policy_decision,
     )
