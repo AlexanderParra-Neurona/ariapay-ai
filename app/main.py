@@ -1,6 +1,6 @@
 import logging
 
-from custodia import get_tracer
+from custodia import TraceIOMiddleware, get_tracer
 from fastapi import FastAPI
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
@@ -18,6 +18,7 @@ get_tracer()  # fail fast on OTLP exporter misconfiguration at boot
 
 app = FastAPI(title=APP_TITLE)
 FastAPIInstrumentor.instrument_app(app)
+app.add_middleware(TraceIOMiddleware)
 
 app.include_router(health_v1_router, prefix=API_V1_PREFIX)
 app.include_router(auth_v1_router, prefix=API_V1_PREFIX)

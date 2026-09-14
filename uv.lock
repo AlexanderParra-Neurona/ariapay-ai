@@ -201,7 +201,7 @@ name = "ariabot"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "custodia-sdk" },
+    { name = "custodia-sdk", extra = ["fastapi"] },
     { name = "fastapi" },
     { name = "httpx" },
     { name = "langchain-qdrant" },
@@ -231,7 +231,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "custodia-sdk", specifier = ">=0.1.1" },
+    { name = "custodia-sdk", extras = ["fastapi"], specifier = ">=0.1.2" },
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "langchain-qdrant", specifier = ">=1.1.0" },
@@ -645,16 +645,21 @@ wheels = [
 
 [[package]]
 name = "custodia-sdk"
-version = "0.1.1"
+version = "0.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "httpx" },
     { name = "opentelemetry-exporter-otlp-proto-http" },
     { name = "opentelemetry-sdk" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/73/39/f797527c3e379ddc4a0d83f2ac802b2db75ed0cf8d83b6d69378f4f6e978/custodia_sdk-0.1.1.tar.gz", hash = "sha256:9a3d59c89f0e6d7239c0dae45f781a851fcc6215cdbbb9491059c2dc8e510283", size = 6987, upload-time = "2026-09-11T04:17:17.449Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f2/a8/ff5c9bb4657b58a5e63c5de1ceb43b11e683b7d41028c21aa93ed590672a/custodia_sdk-0.1.2.tar.gz", hash = "sha256:cf3638871115ed783c0f1c1461c9bc4abee508c5f10af2cb4febc403f11cd9f7", size = 8447, upload-time = "2026-09-14T02:12:11.592Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/73/05/69da0fc12f395b9cc8294fe8b2036d7a1977ed8e33efa4188d2584286d5d/custodia_sdk-0.1.1-py3-none-any.whl", hash = "sha256:4c2f9777915256dff9331b4be534ee20a0787c50411680c02f81ff305d506f0d", size = 8929, upload-time = "2026-09-11T04:17:16.294Z" },
+    { url = "https://files.pythonhosted.org/packages/98/9f/9b23f2f1d5153446354932e2afeb223f2df39be789dd14e634449818fe7e/custodia_sdk-0.1.2-py3-none-any.whl", hash = "sha256:87efbfa9088b85e61fee4c8f9d26f469599ab6ab3a22c0775428e9604d28eba4", size = 10746, upload-time = "2026-09-14T02:12:10.605Z" },
+]
+
+[package.optional-dependencies]
+fastapi = [
+    { name = "starlette" },
 ]
 
 [[package]]
