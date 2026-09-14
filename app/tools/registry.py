@@ -1,10 +1,11 @@
-from app.tools.base import Tool
+from langchain_core.tools import BaseTool
+
 from app.tools.get_account import build_get_account_tool
 from app.tools.search_faq import build_search_faq_tool
 from app.tools.search_transactions import build_search_transactions_tool
 
 
-def get_tools(access_token: str | None = None) -> list[Tool]:
+def get_tools(access_token: str | None = None) -> list[BaseTool]:
     """Build the set of tools available for one chat request.
 
     `access_token` is the signed-in user's Ariapay token, if any. Tools that

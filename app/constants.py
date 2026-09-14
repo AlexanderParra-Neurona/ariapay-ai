@@ -31,19 +31,14 @@ ARIAPAY_PASSCODE_VERIFY_PATH = "/api/v1/passcode/verify"
 # --- LLM ---
 
 
-class Role(str, Enum):
-    SYSTEM = "system"
-    USER = "user"
-
-
 class TraceName(str, Enum):
     CHAT_ANSWER = "chat_answer"
+    AGENT_LOOP = "agent_loop"
     QUERY_CLASSIFIER = "query_classifier"
     TRANSACTION_SCOPE_CLASSIFIER = "transaction_scope_classifier"
     HYBRID_RETRIEVER_SEARCH = "hybrid_retriever_search"
     SPARSE_RETRIEVER_SEARCH = "sparse_retriever_search"
     RRF_FUSION = "rrf_fusion"
-    LITELLM_CHAT = "litellm_chat"
     LITELLM_EMBED = "litellm_embed"
     QDRANT_UPSERT_DOCS = "qdrant_upsert_docs"
     QDRANT_UPSERT_TRANSACTIONS = "qdrant_upsert_transactions"
@@ -58,11 +53,10 @@ class TraceName(str, Enum):
     TOOL_GET_ACCOUNT = "get_account"
 
 
-TRACE_NAME_METADATA_KEY = "trace_name"
-TAGS_METADATA_KEY = "tags"
-
 DEEPINFRA_OPENAI_BASE = "https://api.deepinfra.com/v1/openai"
 OPENAI_MODEL_PREFIX = "openai/"
+
+CHAT_MAX_TOKENS = 2048
 
 
 class LLMProvider(str, Enum):

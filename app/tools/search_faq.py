@@ -1,8 +1,10 @@
+from typing import Annotated
+
 from custodia import trace_tool_call
+from langchain_core.tools import BaseTool, tool
 
 from app.constants import MSG_NO_DOCS_FOUND, TraceName
 from app.services.retrieval import get_hybrid_retriever
-from app.tools.base import Tool
 
 _NAME = TraceName.TOOL_SEARCH_FAQ.value
 _DESCRIPTION = (
@@ -10,16 +12,6 @@ _DESCRIPTION = (
     "the app, its features, policies, or how-to guidance. Not for the user's own "
     "account or transaction data."
 )
-_PARAMETERS = {
-    "type": "object",
-    "properties": {
-        "query": {
-            "type": "string",
-            "description": "The user's question, in their own words.",
-        }
-    },
-    "required": ["query"],
-}
 
 
 @trace_tool_call(name=_NAME, description=_DESCRIPTION)
@@ -36,11 +28,12 @@ def _run(query: str) -> str:
     return "\n\n".join(blocks)
 
 
-async def _run_async(query: str) -> str:
+@tool(_NAME, description=_DESCRIPTION)
+def search_faq(
+    query: Annotated[str, "The user's question, in their own words."],
+) -> str:
     return _run(query)
 
 
-def build_search_faq_tool() -> Tool:
-    return Tool(
-        name=_NAME, description=_DESCRIPTION, parameters=_PARAMETERS, run=_run_async
-    )
+def build_search_faq_tool() -> BaseTool:
+    return search_faq

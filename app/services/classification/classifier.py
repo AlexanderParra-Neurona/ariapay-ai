@@ -3,10 +3,11 @@ import logging
 import re
 
 from custodia import trace
+from langchain_core.language_models import BaseChatModel
+from langchain_core.messages import HumanMessage, SystemMessage
 
-from app.constants import TRACE_NAME_METADATA_KEY, Role, SpendingCategory, TraceName
+from app.constants import SpendingCategory, TraceName
 from app.services.classification.types import QueryCategory, TransactionScope
-from app.services.llm.base import LLMService
 
 _SYSTEM_PROMPT = """You are a query classifier for Ariapay, a payments app assistant.
 Classify the user's message into exactly one category:
@@ -24,20 +25,17 @@ logger = logging.getLogger(__name__)
 
 
 class QueryClassifier:
-    def __init__(self, llm_service: LLMService) -> None:
-        self._llm_service = llm_service
+    def __init__(self, chat_model: BaseChatModel) -> None:
+        self._chat_model = chat_model
 
     @trace(name=TraceName.QUERY_CLASSIFIER.value)
     def classify(self, question: str) -> QueryCategory:
         messages = [
-            {"role": Role.SYSTEM, "content": _SYSTEM_PROMPT},
-            {"role": Role.USER, "content": question},
+            SystemMessage(content=_SYSTEM_PROMPT),
+            HumanMessage(content=question),
         ]
-        raw = self._llm_service.chat(
-            messages,
-            metadata={TRACE_NAME_METADATA_KEY: TraceName.QUERY_CLASSIFIER},
-        )
-        return self._parse(raw)
+        response = self._chat_model.invoke(messages)
+        return self._parse(str(response.content or ""))
 
     @staticmethod
     def _parse(raw: str) -> QueryCategory:
@@ -71,20 +69,17 @@ _VALID_CATEGORIES = {c.value for c in SpendingCategory}
 
 
 class TransactionScopeClassifier:
-    def __init__(self, llm_service: LLMService) -> None:
-        self._llm_service = llm_service
+    def __init__(self, chat_model: BaseChatModel) -> None:
+        self._chat_model = chat_model
 
     @trace(name=TraceName.TRANSACTION_SCOPE_CLASSIFIER.value)
     def classify(self, question: str) -> TransactionScope:
         messages = [
-            {"role": Role.SYSTEM, "content": _SCOPE_SYSTEM_PROMPT},
-            {"role": Role.USER, "content": question},
+            SystemMessage(content=_SCOPE_SYSTEM_PROMPT),
+            HumanMessage(content=question),
         ]
-        raw = self._llm_service.chat(
-            messages,
-            metadata={TRACE_NAME_METADATA_KEY: TraceName.TRANSACTION_SCOPE_CLASSIFIER},
-        )
-        return self._parse(raw)
+        response = self._chat_model.invoke(messages)
+        return self._parse(str(response.content or ""))
 
     @staticmethod
     def _extract_json_object(raw: str) -> str | None:

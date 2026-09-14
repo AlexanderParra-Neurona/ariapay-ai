@@ -7,7 +7,7 @@ from typing import Any
 import pytest
 from ragas.metrics.collections.base import BaseMetric
 
-from app.routers.v1.chat import _answer_from_docs
+from app.services.agent import run_agent
 from app.services.eval import get_ragas_metrics
 from app.services.retrieval import get_hybrid_retriever
 
@@ -40,9 +40,9 @@ async def _score_sample(
     return result.value
 
 
-def _build_sample(item: dict[str, str]) -> dict[str, Any]:
+async def _build_sample(item: dict[str, str]) -> dict[str, Any]:
     query, reference = item["query"], item["reference"]
-    answer, _citations, _confidence, _short_circuit = _answer_from_docs(query)
+    answer = await run_agent(query)
     hits = get_hybrid_retriever().search(query)
     contexts = [doc.page_content for doc, _score in hits]
     return {
@@ -69,7 +69,7 @@ def eval_scores(
 ) -> list[dict[str, float]]:
     rows = []
     for item in eval_set:
-        sample = _build_sample(item)
+        sample = asyncio.run(_build_sample(item))
         row = {
             metric.name: asyncio.run(_score_sample(metric, **sample))
             for metric in ragas_metrics
