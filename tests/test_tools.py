@@ -3,7 +3,6 @@ import asyncio
 from langchain_core.documents import Document
 
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError
-from app.services.classification.types import TransactionScope
 from app.tools import get_tools
 from app.tools.get_account import build_get_account_tool
 from app.tools.search_faq import build_search_faq_tool
@@ -21,14 +20,6 @@ class StubHybridRetriever:
         return self._docs
 
 
-class StubTransactionScopeClassifier:
-    def __init__(self, scope: TransactionScope) -> None:
-        self._scope = scope
-
-    def classify(self, question: str) -> TransactionScope:
-        return self._scope
-
-
 def test_search_faq_tool_returns_doc_content(monkeypatch) -> None:
     doc = Document(
         page_content="Top up via bank transfer.",
@@ -40,7 +31,7 @@ def test_search_faq_tool_returns_doc_content(monkeypatch) -> None:
     )
     tool = build_search_faq_tool()
 
-    output = asyncio.run(tool.run(query="how do I top up?"))
+    output = asyncio.run(tool.ainvoke({"query": "how do I top up?"}))
     assert "Top up via bank transfer." in output
     assert "faq.md" in output
 
@@ -51,7 +42,7 @@ def test_search_faq_tool_no_hits_returns_fallback_message(monkeypatch) -> None:
     )
     tool = build_search_faq_tool()
 
-    output = asyncio.run(tool.run(query="anything"))
+    output = asyncio.run(tool.ainvoke({"query": "anything"}))
     assert output == "Sorry, I don't have information on that."
 
 
@@ -71,15 +62,11 @@ def test_search_transactions_tool_summarizes_spend(monkeypatch) -> None:
         "app.tools.search_transactions.get_hybrid_retriever",
         lambda: StubHybridRetriever(docs),
     )
-    monkeypatch.setattr(
-        "app.tools.search_transactions.get_transaction_scope_classifier",
-        lambda: StubTransactionScopeClassifier(
-            TransactionScope(wants_all=True, category=None)
-        ),
-    )
     tool = build_search_transactions_tool()
 
-    output = asyncio.run(tool.run(query="how much did I spend on food?"))
+    output = asyncio.run(
+        tool.ainvoke({"query": "how much did I spend on food?", "wants_all": True})
+    )
     assert "Rp25,000" in output
     assert "Warkop" in output
 
@@ -89,15 +76,9 @@ def test_search_transactions_tool_no_hits_returns_fallback_message(monkeypatch) 
         "app.tools.search_transactions.get_hybrid_retriever",
         lambda: StubHybridRetriever([]),
     )
-    monkeypatch.setattr(
-        "app.tools.search_transactions.get_transaction_scope_classifier",
-        lambda: StubTransactionScopeClassifier(
-            TransactionScope(wants_all=False, category=None)
-        ),
-    )
     tool = build_search_transactions_tool()
 
-    output = asyncio.run(tool.run(query="anything"))
+    output = asyncio.run(tool.ainvoke({"query": "anything"}))
     assert output == "I couldn't find any transactions matching that."
 
 
@@ -116,7 +97,7 @@ def test_get_account_tool_formats_user(monkeypatch) -> None:
     monkeypatch.setattr("app.tools.get_account.get_me", fake_get_me)
     tool = build_get_account_tool("tok-123")
 
-    output = asyncio.run(tool.run())
+    output = asyncio.run(tool.ainvoke({}))
     assert "Ada Lovelace" in output
     assert "ada@example.com" in output
     assert "Visa 1111 (debit)" in output
@@ -129,7 +110,7 @@ def test_get_account_tool_session_expired(monkeypatch) -> None:
     monkeypatch.setattr("app.tools.get_account.get_me", fake_get_me)
     tool = build_get_account_tool("tok-123")
 
-    output = asyncio.run(tool.run())
+    output = asyncio.run(tool.ainvoke({}))
     assert output == "Your session has expired. Please sign in again."
 
 
@@ -140,7 +121,7 @@ def test_get_account_tool_api_error(monkeypatch) -> None:
     monkeypatch.setattr("app.tools.get_account.get_me", fake_get_me)
     tool = build_get_account_tool("tok-123")
 
-    output = asyncio.run(tool.run())
+    output = asyncio.run(tool.ainvoke({}))
     assert output == "Sorry, I couldn't fetch your account details right now."
 
 

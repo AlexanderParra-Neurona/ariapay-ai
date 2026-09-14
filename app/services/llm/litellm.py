@@ -1,5 +1,3 @@
-from typing import Any
-
 import litellm
 from custodia import trace
 
@@ -7,19 +5,15 @@ from app.config import settings
 from app.constants import (
     DEEPINFRA_OPENAI_BASE,
     OPENAI_MODEL_PREFIX,
-    TAGS_METADATA_KEY,
     LLMProvider,
     TraceName,
 )
 from app.services.llm.base import LLMService
 
-_ENV_TAG = f"env:{settings.APP_ENV}"
-
 
 class LiteLLMService(LLMService):
-    """Routes chat/embedding calls through LiteLLM.
+    """Routes embedding calls through LiteLLM.
 
-    Chat uses LiteLLM's native "ollama/..." / "deepinfra/..." routing.
     LiteLLM's embedding() has no native DeepInfra route, so DeepInfra
     embeddings go through its OpenAI-compatible endpoint instead
     ("openai/<model>" + api_base override) - same provider, different
@@ -27,10 +21,9 @@ class LiteLLMService(LLMService):
     """
 
     def __init__(self) -> None:
-        self._chat_model = settings.CHAT_MODEL
-        self._is_ollama = settings.LLM_PROVIDER == LLMProvider.OLLAMA
+        is_ollama = settings.LLM_PROVIDER == LLMProvider.OLLAMA
 
-        if self._is_ollama:
+        if is_ollama:
             self._embed_model = settings.EMBED_MODEL
             self._embed_api_base = settings.OLLAMA_URL
             self._embed_api_key = None
@@ -38,9 +31,6 @@ class LiteLLMService(LLMService):
             self._embed_model = f"{OPENAI_MODEL_PREFIX}{settings.DEEPINFRA_EMBED_MODEL}"
             self._embed_api_base = DEEPINFRA_OPENAI_BASE
             self._embed_api_key = settings.DEEPINFRA_API_TOKEN
-
-        self._chat_api_base = settings.OLLAMA_URL if self._is_ollama else None
-        self._chat_api_key = None if self._is_ollama else settings.DEEPINFRA_API_TOKEN
 
     def embed(self, text: str) -> list[float]:
         return self.embed_documents([text])[0]
@@ -54,24 +44,3 @@ class LiteLLMService(LLMService):
             api_key=self._embed_api_key,
         )
         return [item["embedding"] for item in resp.data]
-
-    @trace(name=TraceName.LITELLM_CHAT.value)
-    def chat(
-        self, messages: list[dict[str, str]], metadata: dict[str, Any] | None = None
-    ) -> str:
-        resp = litellm.completion(
-            model=self._chat_model,
-            messages=messages,
-            api_base=self._chat_api_base,
-            api_key=self._chat_api_key,
-            metadata=self._with_env_tag(metadata),
-        )
-        return resp.choices[0].message.content
-
-    @staticmethod
-    def _with_env_tag(metadata: dict[str, Any] | None) -> dict[str, Any]:
-        metadata = dict(metadata) if metadata else {}
-        tags = list(metadata.get(TAGS_METADATA_KEY, []))
-        tags.append(_ENV_TAG)
-        metadata[TAGS_METADATA_KEY] = tags
-        return metadata

@@ -41,7 +41,8 @@ class HybridRetriever:
             )
 
         top_k = top_k or settings.RETRIEVAL_TOP_K
+        category = scope.category if scope is not None else None
         hits = self._qdrant_service.similarity_search_transactions_with_score(
-            query, k=top_k
+            query, k=top_k, category=category
         )
         return [doc for doc, _ in hits]

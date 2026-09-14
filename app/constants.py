@@ -31,19 +31,12 @@ ARIAPAY_PASSCODE_VERIFY_PATH = "/api/v1/passcode/verify"
 # --- LLM ---
 
 
-class Role(str, Enum):
-    SYSTEM = "system"
-    USER = "user"
-
-
 class TraceName(str, Enum):
-    CHAT_ANSWER = "chat_answer"
+    AGENT_LOOP = "agent_loop"
     QUERY_CLASSIFIER = "query_classifier"
-    TRANSACTION_SCOPE_CLASSIFIER = "transaction_scope_classifier"
     HYBRID_RETRIEVER_SEARCH = "hybrid_retriever_search"
     SPARSE_RETRIEVER_SEARCH = "sparse_retriever_search"
     RRF_FUSION = "rrf_fusion"
-    LITELLM_CHAT = "litellm_chat"
     LITELLM_EMBED = "litellm_embed"
     QDRANT_UPSERT_DOCS = "qdrant_upsert_docs"
     QDRANT_UPSERT_TRANSACTIONS = "qdrant_upsert_transactions"
@@ -58,11 +51,10 @@ class TraceName(str, Enum):
     TOOL_GET_ACCOUNT = "get_account"
 
 
-TRACE_NAME_METADATA_KEY = "trace_name"
-TAGS_METADATA_KEY = "tags"
-
 DEEPINFRA_OPENAI_BASE = "https://api.deepinfra.com/v1/openai"
 OPENAI_MODEL_PREFIX = "openai/"
+
+CHAT_MAX_TOKENS = 2048
 
 
 class LLMProvider(str, Enum):
@@ -108,6 +100,11 @@ MSG_OUT_OF_SCOPE = (
     "or your account balance and transactions."
 )
 MSG_NO_DOCS_FOUND = "Sorry, I don't have information on that."
+MSG_AGENT_NO_ANSWER = "Sorry, I couldn't find an answer to that."
+MSG_AGENT_TOO_COMPLEX = (
+    "Sorry, that request needs more steps than I can take right now. "
+    "Try breaking it into smaller questions."
+)
 MSG_SIGN_IN_FOR_ACCOUNT = "Please sign in to view your account details."
 MSG_SESSION_EXPIRED = "Your session has expired. Please sign in again."
 MSG_ACCOUNT_FETCH_FAILED = "Sorry, I couldn't fetch your account details right now."

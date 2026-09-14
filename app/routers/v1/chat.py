@@ -1,175 +1,20 @@
-from datetime import datetime
-
-from custodia import trace
 from fastapi import APIRouter
-from langchain_core.documents import Document
 
 from app.constants import (
-    CURRENCY_PREFIX,
-    MSG_ACCOUNT_FETCH_FAILED,
-    MSG_NO_DOCS_FOUND,
-    MSG_NO_TRANSACTIONS_FOUND,
     MSG_OUT_OF_SCOPE,
-    MSG_SESSION_EXPIRED,
     MSG_SIGN_IN_FOR_ACCOUNT,
     MSG_SIGN_IN_FOR_TRANSACTIONS,
-    TIMESTAMP_DISPLAY_FORMAT,
-    TRACE_NAME_METADATA_KEY,
-    Role,
-    TraceName,
 )
-from app.schemas import ChatRequest, ChatResponse, Citation, PolicyDecision
-from app.services.ariapay_service import AriapayAPIError, AriapayAuthError, get_me
-from app.services.classification import (
-    QueryCategory,
-    get_query_classifier,
-    get_transaction_scope_classifier,
-)
-from app.services.llm import get_llm_service
-from app.services.retrieval import get_hybrid_retriever
+from app.schemas import ChatRequest, ChatResponse, PolicyDecision
+from app.services.agent import run_agent
+from app.services.classification import QueryCategory, get_query_classifier
 
 router = APIRouter()
-
-
-@trace(name=TraceName.CHAT_ANSWER.value)
-def _answer_from_docs(question: str) -> tuple[str, list[Citation], float | None, bool]:
-    hits = get_hybrid_retriever().search(question)
-    if not hits:
-        return MSG_NO_DOCS_FOUND, [], None, True
-
-    docs = [doc for doc, _ in hits]
-    citations = [
-        Citation(
-            source=d.metadata.get("source", ""), heading=d.metadata.get("heading", "")
-        )
-        for d in docs
-    ]
-    confidence = hits[0][1]
-
-    context_block = "\n\n".join(d.page_content for d in docs)
-    prompt = (
-        "Answer the question using only the context below. Be concise.\n\n"
-        f"Context:\n{context_block}\n\n"
-        f"Question: {question}\n\nAnswer:"
-    )
-    answer = get_llm_service().chat(
-        [{"role": Role.USER, "content": prompt}],
-        metadata={TRACE_NAME_METADATA_KEY: TraceName.CHAT_ANSWER},
-    )
-    return answer, citations, confidence, False
-
-
-def _format_timestamp(timestamp: str) -> str:
-    try:
-        dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-    except ValueError:
-        return timestamp
-    return dt.strftime(TIMESTAMP_DISPLAY_FORMAT)
-
-
-def _transaction_bullets(docs: list[Document]) -> str:
-    lines = [
-        "- {merchant} - {currency}{price:,.0f} on {timestamp}".format(
-            merchant=d.metadata.get("merchant_name", "Unknown"),
-            currency=CURRENCY_PREFIX,
-            price=d.metadata.get("price", 0.0),
-            timestamp=_format_timestamp(d.metadata.get("timestamp", "")),
-        )
-        for d in docs
-    ]
-    return "\n".join(lines)
-
-
-def _answer_from_transactions(question: str) -> str | None:
-    scope = get_transaction_scope_classifier().classify(question)
-    docs = get_hybrid_retriever().search_transactions(question, scope=scope)
-    if scope is not None and scope.category is not None:
-        docs = [d for d in docs if d.metadata.get("category") == scope.category]
-    if not docs:
-        return None
-
-    total = sum(d.metadata.get("price", 0.0) for d in docs)
-    summary = (
-        f"You spent a total of {CURRENCY_PREFIX}{total:,.0f} "
-        f"across {len(docs)} transaction(s)."
-    )
-    bullets = _transaction_bullets(docs)
-    return f"{summary}\n\n{bullets}"
-
-
-def _format_me_answer(user: dict) -> str:
-    cards = user.get("cards") or []
-    card_lines = [
-        f"- {c['card_network']} {c['number']} ({c['card_type']})" for c in cards
-    ]
-    lines = [
-        f"Name: {user['first_name']} {user['last_name']}",
-        f"Email: {user['email']}",
-        f"Phone: {user['country_code']}{user['phone_number']}",
-    ]
-    if card_lines:
-        lines.append("Cards:")
-        lines.extend(card_lines)
-    return "\n".join(lines)
 
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
     category = get_query_classifier().classify(req.question)
-
-    if category == QueryCategory.ACCOUNT_PROFILE:
-        if not req.access_token:
-            return ChatResponse(
-                answer=MSG_SIGN_IN_FOR_ACCOUNT,
-                short_circuit=True,
-                category=category,
-                policy_decision=PolicyDecision.DECLINED_AUTH_REQUIRED,
-            )
-        try:
-            user = await get_me(req.access_token)
-        except AriapayAuthError:
-            return ChatResponse(
-                answer=MSG_SESSION_EXPIRED,
-                short_circuit=True,
-                category=category,
-                policy_decision=PolicyDecision.DECLINED_AUTH_REQUIRED,
-            )
-        except AriapayAPIError:
-            return ChatResponse(
-                answer=MSG_ACCOUNT_FETCH_FAILED,
-                short_circuit=True,
-                category=category,
-                policy_decision=PolicyDecision.HANDOFF_NO_DATA,
-            )
-        return ChatResponse(
-            answer=_format_me_answer(user),
-            short_circuit=True,
-            category=category,
-            policy_decision=PolicyDecision.ANSWERED,
-        )
-
-    if category == QueryCategory.TRANSACTION_HISTORY:
-        if not req.access_token:
-            return ChatResponse(
-                answer=MSG_SIGN_IN_FOR_TRANSACTIONS,
-                short_circuit=True,
-                category=category,
-                policy_decision=PolicyDecision.DECLINED_AUTH_REQUIRED,
-            )
-        answer = _answer_from_transactions(req.question)
-        if answer is None:
-            return ChatResponse(
-                answer=MSG_NO_TRANSACTIONS_FOUND,
-                short_circuit=True,
-                category=category,
-                policy_decision=PolicyDecision.HANDOFF_NO_DATA,
-            )
-        return ChatResponse(
-            answer=answer,
-            short_circuit=True,
-            category=category,
-            policy_decision=PolicyDecision.ANSWERED,
-        )
 
     if category == QueryCategory.OUT_OF_SCOPE:
         return ChatResponse(
@@ -179,15 +24,29 @@ async def chat(req: ChatRequest):
             policy_decision=PolicyDecision.DECLINED_OUT_OF_SCOPE,
         )
 
-    answer, citations, confidence, short_circuit = _answer_from_docs(req.question)
+    if category == QueryCategory.ACCOUNT_PROFILE and not req.access_token:
+        return ChatResponse(
+            answer=MSG_SIGN_IN_FOR_ACCOUNT,
+            short_circuit=True,
+            category=category,
+            policy_decision=PolicyDecision.DECLINED_AUTH_REQUIRED,
+        )
+
+    if category == QueryCategory.TRANSACTION_HISTORY and not req.access_token:
+        return ChatResponse(
+            answer=MSG_SIGN_IN_FOR_TRANSACTIONS,
+            short_circuit=True,
+            category=category,
+            policy_decision=PolicyDecision.DECLINED_AUTH_REQUIRED,
+        )
+
+    answer, no_data_found = await run_agent(req.question, access_token=req.access_token)
     policy_decision = (
-        PolicyDecision.ANSWERED if citations else PolicyDecision.HANDOFF_NO_DATA
+        PolicyDecision.HANDOFF_NO_DATA if no_data_found else PolicyDecision.ANSWERED
     )
     return ChatResponse(
         answer=answer,
-        short_circuit=short_circuit,
+        short_circuit=False,
         category=category,
         policy_decision=policy_decision,
-        citations=citations,
-        confidence=confidence,
     )
