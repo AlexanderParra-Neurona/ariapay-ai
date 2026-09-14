@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from custodia import trace_tool_call
-from langchain_core.tools import BaseTool, tool
+from langchain_core.tools import tool
 
 from app.constants import MSG_NO_DOCS_FOUND, TraceName
 from app.services.retrieval import get_hybrid_retriever
@@ -14,8 +14,11 @@ _DESCRIPTION = (
 )
 
 
+@tool(_NAME, description=_DESCRIPTION)
 @trace_tool_call(name=_NAME, description=_DESCRIPTION)
-def _run(query: str) -> str:
+def search_faq(
+    query: Annotated[str, "The user's question, in their own words."],
+) -> str:
     hits = get_hybrid_retriever().search(query)
     if not hits:
         return MSG_NO_DOCS_FOUND
@@ -28,12 +31,5 @@ def _run(query: str) -> str:
     return "\n\n".join(blocks)
 
 
-@tool(_NAME, description=_DESCRIPTION)
-def search_faq(
-    query: Annotated[str, "The user's question, in their own words."],
-) -> str:
-    return _run(query)
-
-
-def build_search_faq_tool() -> BaseTool:
+def build_search_faq_tool():
     return search_faq
