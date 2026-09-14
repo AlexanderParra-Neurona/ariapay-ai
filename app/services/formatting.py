@@ -29,12 +29,14 @@ def format_transaction_bullets(docs: list[Document]) -> str:
 def format_account(user: dict) -> str:
     cards = user.get("cards") or []
     card_lines = [
-        f"- {c['card_network']} {c['number']} ({c['card_type']})" for c in cards
+        f"- {c.get('card_network', 'Unknown')} {c.get('number', '')} "
+        f"({c.get('card_type', 'Unknown')})"
+        for c in cards
     ]
     lines = [
-        f"Name: {user['first_name']} {user['last_name']}",
-        f"Email: {user['email']}",
-        f"Phone: {user['country_code']}{user['phone_number']}",
+        f"Name: {user.get('first_name', '')} {user.get('last_name', '')}".strip(),
+        f"Email: {user.get('email', 'Unknown')}",
+        f"Phone: {user.get('country_code', '')}{user.get('phone_number', '')}",
     ]
     if card_lines:
         lines.append("Cards:")

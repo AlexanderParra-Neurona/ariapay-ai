@@ -1,9 +1,13 @@
+import logging
+
 from custodia import trace_tool_call_async
 from langchain_core.tools import BaseTool, StructuredTool
 
 from app.constants import MSG_ACCOUNT_FETCH_FAILED, MSG_SESSION_EXPIRED, TraceName
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError, get_me
 from app.services.formatting import format_account
+
+logger = logging.getLogger(__name__)
 
 _NAME = TraceName.TOOL_GET_ACCOUNT.value
 _DESCRIPTION = (
@@ -21,6 +25,9 @@ def build_get_account_tool(access_token: str) -> BaseTool:
         except AriapayAuthError:
             return MSG_SESSION_EXPIRED
         except AriapayAPIError:
+            return MSG_ACCOUNT_FETCH_FAILED
+        except Exception:
+            logger.exception("get_account: unexpected failure fetching account")
             return MSG_ACCOUNT_FETCH_FAILED
         return format_account(user)
 
