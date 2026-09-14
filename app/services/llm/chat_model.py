@@ -14,6 +14,10 @@ _QWEN3_MODEL_KWARGS = {
 def get_chat_model() -> ChatLiteLLM:
     is_ollama = settings.LLM_PROVIDER == LLMProvider.OLLAMA
     model_kwargs = _QWEN3_MODEL_KWARGS if "Qwen3" in settings.CHAT_MODEL else {}
+    model_kwargs = {
+        **model_kwargs,
+        "metadata": {"tags": [f"env:{settings.APP_ENV}"]},
+    }
 
     return ChatLiteLLM(
         model=settings.CHAT_MODEL,

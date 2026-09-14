@@ -14,7 +14,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s %(message)s",
 )
 
-get_tracer()  # fail fast on OTLP exporter misconfiguration at boot
+get_tracer()  # initialize the tracer provider eagerly, before the first request
 
 app = FastAPI(title=APP_TITLE)
 FastAPIInstrumentor.instrument_app(app)
