@@ -34,6 +34,9 @@ dev = [
     "ruff>=0.16.5",
 ]
 
+[tool.uv.sources]
+custodia-sdk = { path = "../custodia/sdk-python", editable = true }
+
 [tool.pytest.ini_options]
 markers = [
     "eval: slow RAG quality eval hitting Qdrant + DeepInfra (deselect with -m 'not eval')",

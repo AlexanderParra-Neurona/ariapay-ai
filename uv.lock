@@ -233,7 +233,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "custodia-sdk", extras = ["fastapi"], specifier = ">=0.1.3" },
+    { name = "custodia-sdk", extras = ["fastapi"], editable = "../custodia/sdk-python" },
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "langchain-litellm", specifier = ">=0.7.1" },
@@ -804,21 +804,26 @@ wheels = [
 [[package]]
 name = "custodia-sdk"
 version = "0.1.3"
-source = { registry = "https://pypi.org/simple" }
+source = { editable = "../custodia/sdk-python" }
 dependencies = [
     { name = "httpx" },
     { name = "opentelemetry-exporter-otlp-proto-http" },
     { name = "opentelemetry-sdk" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/a9/0dc3173c55d84a52f6ed047f2269a221c3036614067599f77f47505f8368/custodia_sdk-0.1.3.tar.gz", hash = "sha256:ca5003e8221a30e9f603d4b3420a2c39c8569a1613b10abd9eb78d859eba4ad3", size = 9094, upload-time = "2026-09-14T04:39:21.681Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/42/791cac46f94b44b26a9a1fb81276cea497f356e2ef8520769462b1a8ff7f/custodia_sdk-0.1.3-py3-none-any.whl", hash = "sha256:00f8a22225755c7a6891a4059d4a0de5d53d8ccffde097a37768faefb8bd2d0b", size = 11323, upload-time = "2026-09-14T04:39:20.429Z" },
 ]
 
 [package.optional-dependencies]
 fastapi = [
     { name = "starlette" },
 ]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.44.0" },
+    { name = "opentelemetry-sdk", specifier = ">=1.44.0" },
+    { name = "starlette", marker = "extra == 'fastapi'", specifier = ">=0.40.0" },
+]
+provides-extras = ["fastapi"]
 
 [[package]]
 name = "dataclasses-json"
