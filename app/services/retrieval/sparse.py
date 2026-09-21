@@ -1,10 +1,10 @@
-from custodia import trace
 from langchain_core.documents import Document
 from qdrant_client.http.models import FieldCondition, Filter, MatchValue
 from rank_bm25 import BM25Okapi
 
 from app.constants import POINT_TYPE_DOC, QDRANT_SCROLL_BATCH_SIZE, TraceName
 from app.services.qdrant.qdrant import QdrantService
+from app.tracing import trace
 
 
 def _tokenize(text: str) -> list[str]:

@@ -29,9 +29,9 @@ services:
       QDRANT_URL: ${QDRANT_URL}
       QDRANT_API_KEY: ${QDRANT_API_KEY}
       QDRANT_COLLECTION: ${QDRANT_COLLECTION}
-      CUSTODIA_INGEST_URL: ${CUSTODIA_INGEST_URL:-http://host.docker.internal:8000/v1/traces}
-      CUSTODIA_API_KEY: ${CUSTODIA_API_KEY:-}
-      CUSTODIA_SERVICE_NAME: ${CUSTODIA_SERVICE_NAME:-ariabot}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-https://cloud.langfuse.com}
 
     volumes:
       - ./.llm-provider:/app/.llm-provider:ro

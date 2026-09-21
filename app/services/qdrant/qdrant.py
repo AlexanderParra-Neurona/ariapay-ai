@@ -1,6 +1,5 @@
 import hashlib
 
-from custodia import trace
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
 from langchain_qdrant import QdrantVectorStore
@@ -28,6 +27,7 @@ from app.constants import (
     TraceName,
 )
 from app.services.llm import LLMServiceEmbeddings, get_llm_service
+from app.tracing import trace
 
 COLLECTION_NAME = settings.QDRANT_COLLECTION
 DOCS_VECTOR = DOCS_VECTOR_NAME

@@ -1,11 +1,11 @@
 import logging
 
-from custodia import trace_tool_call_async
 from langchain_core.tools import BaseTool, StructuredTool
 
 from app.constants import MSG_ACCOUNT_FETCH_FAILED, MSG_SESSION_EXPIRED, TraceName
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError, get_me
 from app.services.formatting import format_account
+from app.tracing import trace_tool_call_async
 
 logger = logging.getLogger(__name__)
 

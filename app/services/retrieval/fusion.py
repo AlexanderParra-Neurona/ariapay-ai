@@ -1,7 +1,7 @@
-from custodia import trace
 from langchain_core.documents import Document
 
 from app.constants import RRF_K_CONSTANT, TraceName
+from app.tracing import trace
 
 
 def _doc_key(doc: Document) -> tuple:

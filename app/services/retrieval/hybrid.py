@@ -1,4 +1,3 @@
-from custodia import trace
 from langchain_core.documents import Document
 
 from app.config import settings
@@ -7,6 +6,7 @@ from app.services.classification.types import TransactionScope
 from app.services.qdrant.qdrant import QdrantService
 from app.services.retrieval.fusion import rrf_fuse
 from app.services.retrieval.sparse import SparseRetriever
+from app.tracing import trace
 
 
 class HybridRetriever:

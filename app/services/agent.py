@@ -1,7 +1,6 @@
 import logging
 from functools import cache
 
-from custodia import trace_async
 from langchain_core.messages import SystemMessage, ToolMessage
 from langgraph.errors import GraphRecursionError
 from langgraph.graph import START, MessagesState, StateGraph
@@ -16,6 +15,7 @@ from app.constants import (
 )
 from app.services.llm import get_chat_model
 from app.tools import get_tools
+from app.tracing import trace_async
 
 logger = logging.getLogger(__name__)
 
