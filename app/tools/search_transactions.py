@@ -19,6 +19,9 @@ _WANTS_ALL_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
+# TODO: this searches a single shared transaction collection with no user_id
+# filter (see Qdrant.upsert_transactions). Safe only for this deployment's
+# single demo user; add per-user scoping before a second user exists.
 _NAME = TraceName.TOOL_SEARCH_TRANSACTIONS.value
 _DESCRIPTION = (
     "Search the signed-in user's own transaction history and spending. Use for "

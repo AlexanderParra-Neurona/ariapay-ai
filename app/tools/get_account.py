@@ -1,5 +1,6 @@
 import logging
 
+from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import BaseTool, StructuredTool
 
 from app.constants import MSG_ACCOUNT_FETCH_FAILED, MSG_SESSION_EXPIRED, TraceName
@@ -17,9 +18,10 @@ _DESCRIPTION = (
 )
 
 
-def build_get_account_tool(access_token: str) -> BaseTool:
+def build_get_account_tool() -> BaseTool:
     @trace_tool_call_async(name=_NAME, description=_DESCRIPTION)
-    async def _run() -> str:
+    async def _run(config: RunnableConfig) -> str:
+        access_token = config["configurable"]["access_token"]
         try:
             user = await get_me(access_token)
         except AriapayAuthError:

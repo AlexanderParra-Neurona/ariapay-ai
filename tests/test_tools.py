@@ -95,9 +95,11 @@ def test_get_account_tool_formats_user(monkeypatch) -> None:
         }
 
     monkeypatch.setattr("app.tools.get_account.get_me", fake_get_me)
-    tool = build_get_account_tool("tok-123")
+    tool = build_get_account_tool()
 
-    output = asyncio.run(tool.ainvoke({}))
+    output = asyncio.run(
+        tool.ainvoke({}, config={"configurable": {"access_token": "tok-123"}})
+    )
     assert "Ada Lovelace" in output
     assert "ada@example.com" in output
     assert "Visa 1111 (debit)" in output
@@ -108,9 +110,11 @@ def test_get_account_tool_session_expired(monkeypatch) -> None:
         raise AriapayAuthError("expired")
 
     monkeypatch.setattr("app.tools.get_account.get_me", fake_get_me)
-    tool = build_get_account_tool("tok-123")
+    tool = build_get_account_tool()
 
-    output = asyncio.run(tool.ainvoke({}))
+    output = asyncio.run(
+        tool.ainvoke({}, config={"configurable": {"access_token": "tok-123"}})
+    )
     assert output == "Your session has expired. Please sign in again."
 
 
@@ -119,19 +123,21 @@ def test_get_account_tool_api_error(monkeypatch) -> None:
         raise AriapayAPIError("boom")
 
     monkeypatch.setattr("app.tools.get_account.get_me", fake_get_me)
-    tool = build_get_account_tool("tok-123")
+    tool = build_get_account_tool()
 
-    output = asyncio.run(tool.ainvoke({}))
+    output = asyncio.run(
+        tool.ainvoke({}, config={"configurable": {"access_token": "tok-123"}})
+    )
     assert output == "Sorry, I couldn't fetch your account details right now."
 
 
 def test_get_tools_omits_authenticated_tools_without_token() -> None:
-    tools = get_tools()
+    tools = get_tools(signed_in=False)
     assert [t.name for t in tools] == ["search_faq"]
 
 
 def test_get_tools_includes_authenticated_tools_with_token() -> None:
-    tools = get_tools(access_token="tok-123")
+    tools = get_tools(signed_in=True)
     assert [t.name for t in tools] == [
         "search_faq",
         "search_transactions",

@@ -1,16 +1,19 @@
 import logging
-from functools import cache
+from functools import lru_cache
 
 from langchain_core.messages import SystemMessage, ToolMessage
+from langfuse.langchain import CallbackHandler
 from langgraph.errors import GraphRecursionError
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 
 from app.constants import (
+    MSG_ACCOUNT_FETCH_FAILED,
     MSG_AGENT_NO_ANSWER,
     MSG_AGENT_TOO_COMPLEX,
     MSG_NO_DOCS_FOUND,
     MSG_NO_TRANSACTIONS_FOUND,
+    MSG_SESSION_EXPIRED,
     TraceName,
 )
 from app.services.llm import get_chat_model
@@ -27,11 +30,20 @@ Never invent transaction, account, or FAQ content that didn't come from a tool."
 _RECURSION_LIMIT = 8
 
 _NO_DATA_TOOL_MESSAGES = {MSG_NO_DOCS_FOUND, MSG_NO_TRANSACTIONS_FOUND}
+_AUTH_LOST_TOOL_MESSAGES = {MSG_SESSION_EXPIRED, MSG_ACCOUNT_FETCH_FAILED}
+
+_langfuse_handler = CallbackHandler()
 
 
-@cache
-def _build_graph(access_token: str | None):
-    tools = get_tools(access_token)
+@lru_cache(maxsize=2)
+def _build_graph(signed_in: bool):
+    """Build the agent graph for one of exactly two tool sets (signed in or not).
+
+    Token-agnostic: the actual `access_token` is threaded per-invocation via
+    `RunnableConfig` (see `run_agent`), never baked into the graph, so this
+    cache is bounded by `signed_in` and never grows with distinct tokens/users.
+    """
+    tools = get_tools(signed_in)
     model = get_chat_model().bind_tools(tools)
 
     def call_model(state: MessagesState) -> dict:
@@ -51,18 +63,25 @@ def _build_graph(access_token: str | None):
 
 def _found_no_data(messages: list) -> bool:
     return any(
-        isinstance(m, ToolMessage) and m.content in _NO_DATA_TOOL_MESSAGES
+        isinstance(m, ToolMessage)
+        and (
+            m.content in _NO_DATA_TOOL_MESSAGES or m.content in _AUTH_LOST_TOOL_MESSAGES
+        )
         for m in messages
     )
 
 
 @trace_async(name=TraceName.AGENT_LOOP.value)
 async def run_agent(question: str, access_token: str | None = None) -> tuple[str, bool]:
-    graph = _build_graph(access_token)
+    graph = _build_graph(signed_in=bool(access_token))
     try:
         result = await graph.ainvoke(
             {"messages": [{"role": "user", "content": question}]},
-            config={"recursion_limit": _RECURSION_LIMIT},
+            config={
+                "recursion_limit": _RECURSION_LIMIT,
+                "configurable": {"access_token": access_token},
+                "callbacks": [_langfuse_handler],
+            },
         )
     except GraphRecursionError:
         logger.warning("run_agent: hit recursion limit for question=%r", question)

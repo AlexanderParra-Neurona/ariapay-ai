@@ -5,15 +5,17 @@ from app.tools.search_faq import build_search_faq_tool
 from app.tools.search_transactions import build_search_transactions_tool
 
 
-def get_tools(access_token: str | None = None) -> list[BaseTool]:
+def get_tools(signed_in: bool) -> list[BaseTool]:
     """Build the set of tools available for one chat request.
 
-    `access_token` is the signed-in user's Ariapay token, if any. Tools that
-    require a signed-in user (get_account, search_transactions) are omitted
-    when absent, rather than exposed with no way to authenticate.
+    Tools that require a signed-in user (get_account, search_transactions)
+    are omitted when `signed_in` is False, rather than exposed with no way
+    to authenticate. The actual access token is threaded in per-invocation
+    via `RunnableConfig`, not baked into the tool closure, so the tool set
+    itself is token-agnostic and safe to build once per (signed_in) value.
     """
     tools = [build_search_faq_tool()]
-    if access_token:
+    if signed_in:
         tools.append(build_search_transactions_tool())
-        tools.append(build_get_account_tool(access_token))
+        tools.append(build_get_account_tool())
     return tools
