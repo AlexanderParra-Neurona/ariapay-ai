@@ -7,8 +7,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
 
-DEFAULT_REDACT_KEYS = {"password", "passcode", "access_token", "refresh_token"}
-REDACTED = "[REDACTED]"
+from app.tracing import REDACT_KEYS as DEFAULT_REDACT_KEYS
+from app.tracing import redact as _redact
 
 
 class TraceIOMiddleware(BaseHTTPMiddleware):
@@ -55,16 +55,6 @@ class TraceIOMiddleware(BaseHTTPMiddleware):
             return _redact(json.loads(body), self._redact_keys)
         except (json.JSONDecodeError, UnicodeDecodeError):
             return None
-
-
-def _redact(value: Any, keys: set[str]) -> Any:
-    if isinstance(value, dict):
-        return {
-            k: REDACTED if k in keys else _redact(v, keys) for k, v in value.items()
-        }
-    if isinstance(value, list):
-        return [_redact(v, keys) for v in value]
-    return value
 
 
 async def _replay(chunks: list[bytes]):

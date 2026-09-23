@@ -7,7 +7,7 @@ from app.constants import CURRENCY_PREFIX, TIMESTAMP_DISPLAY_FORMAT
 
 def format_timestamp(timestamp: str) -> str:
     try:
-        dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        dt = datetime.fromisoformat(timestamp)
     except ValueError:
         return timestamp
     return dt.strftime(TIMESTAMP_DISPLAY_FORMAT)

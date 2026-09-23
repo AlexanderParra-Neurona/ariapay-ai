@@ -7,6 +7,7 @@ new code.
 """
 
 import functools
+import re
 import uuid
 from collections.abc import Callable
 from typing import Any, TypeVar
@@ -14,6 +15,37 @@ from typing import Any, TypeVar
 from langfuse import get_client, observe
 
 F = TypeVar("F", bound=Callable[..., Any])
+
+REDACT_KEYS = {"password", "passcode", "access_token", "refresh_token"}
+REDACTED = "[REDACTED]"
+
+_EMAIL_PATTERN = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
+_PHONE_PATTERN = re.compile(r"(?<!\d)(\+?\d[\d\-\s]{7,}\d)(?!\d)")
+
+
+def redact(value: Any, keys: set[str] = REDACT_KEYS) -> Any:
+    """Recursively replace values at `keys` (any nesting depth) with a redaction marker."""
+    if isinstance(value, dict):
+        return {k: REDACTED if k in keys else redact(v, keys) for k, v in value.items()}
+    if isinstance(value, list):
+        return [redact(v, keys) for v in value]
+    return value
+
+
+def mask_pii(*, data: Any, **_: Any) -> Any:
+    """Langfuse client-level mask: redacts known PII before spans leave the process.
+
+    Applied to every trace's input/output (traced function args/return
+    values, tool-call args/results), independent of `TraceIOMiddleware`
+    which only covers the top-level HTTP request/response body. Handles
+    structured data via key-based redaction and free text (e.g. the
+    `format_account` tool output) via email/phone pattern scrubbing.
+    """
+    redacted = redact(data)
+    if isinstance(redacted, str):
+        redacted = _EMAIL_PATTERN.sub(REDACTED, redacted)
+        redacted = _PHONE_PATTERN.sub(REDACTED, redacted)
+    return redacted
 
 
 def trace(name: str | None = None) -> Callable[[F], F]:
@@ -29,21 +61,15 @@ def trace_async(name: str | None = None) -> Callable[[F], F]:
 def trace_tool_call(
     name: str | None = None, description: str | None = None
 ) -> Callable[[F], F]:
-    """Wrap a synchronous tool handler in a Langfuse tool-type span.
-
-    Pass `tool_call_id` as a keyword argument to the wrapped function to
-    attribute the span to a specific model-issued tool call; it is
-    consumed by the wrapper and not forwarded to the wrapped function.
-    """
+    """Wrap a synchronous tool handler in a Langfuse tool-type span."""
 
     def decorator(fn: F) -> F:
         span_name = name or fn.__name__
 
         @functools.wraps(fn)
         def with_metadata(*args: Any, **kwargs: Any) -> Any:
-            tool_call_id = kwargs.pop("tool_call_id", None) or str(uuid.uuid4())
             get_client().update_current_span(
-                metadata={"tool_call_id": tool_call_id, "description": description}
+                metadata={"tool_call_id": str(uuid.uuid4()), "description": description}
             )
             return fn(*args, **kwargs)
 
@@ -62,9 +88,8 @@ def trace_tool_call_async(
 
         @functools.wraps(fn)
         async def with_metadata(*args: Any, **kwargs: Any) -> Any:
-            tool_call_id = kwargs.pop("tool_call_id", None) or str(uuid.uuid4())
             get_client().update_current_span(
-                metadata={"tool_call_id": tool_call_id, "description": description}
+                metadata={"tool_call_id": str(uuid.uuid4()), "description": description}
             )
             return await fn(*args, **kwargs)
 

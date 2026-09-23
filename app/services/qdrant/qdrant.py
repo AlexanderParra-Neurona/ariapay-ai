@@ -134,6 +134,11 @@ class QdrantService:
     def upsert_transactions(
         self, transactions: list[tuple[str, str, float, str]]
     ) -> None:
+        # TODO: transaction points carry no user_id, and
+        # similarity_search_transactions() applies no per-user filter — every
+        # signed-in user currently shares one transaction pool. Safe only
+        # because this deployment has exactly one demo user; add a user_id
+        # field + filter before a second user is onboarded.
         if not transactions:
             return
         docs = [
