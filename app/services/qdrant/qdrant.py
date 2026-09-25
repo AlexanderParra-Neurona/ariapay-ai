@@ -24,8 +24,10 @@ from app.constants import (
     POINT_TYPE_TRANSACTION,
     QDRANT_SCROLL_BATCH_SIZE,
     TRANSACTIONS_VECTOR_NAME,
+    TraceName,
 )
 from app.services.llm import LLMServiceEmbeddings, get_llm_service
+from app.tracing import trace
 
 COLLECTION_NAME = settings.QDRANT_COLLECTION
 DOCS_VECTOR = DOCS_VECTOR_NAME
@@ -109,6 +111,7 @@ class QdrantService:
     def upsert_doc_chunk(self, source: str, heading: str, text: str) -> None:
         self.upsert_doc_chunks([(source, heading, text)])
 
+    @trace(name=TraceName.QDRANT_UPSERT_DOCS.value)
     def upsert_doc_chunks(self, chunks: list[tuple[str, str, str]]) -> None:
         if not chunks:
             return
@@ -127,9 +130,15 @@ class QdrantService:
     ) -> None:
         self.upsert_transactions([(merchant_name, category, price, timestamp)])
 
+    @trace(name=TraceName.QDRANT_UPSERT_TRANSACTIONS.value)
     def upsert_transactions(
         self, transactions: list[tuple[str, str, float, str]]
     ) -> None:
+        # TODO: transaction points carry no user_id, and
+        # similarity_search_transactions() applies no per-user filter — every
+        # signed-in user currently shares one transaction pool. Safe only
+        # because this deployment has exactly one demo user; add a user_id
+        # field + filter before a second user is onboarded.
         if not transactions:
             return
         docs = [
@@ -154,26 +163,47 @@ class QdrantService:
         ]
         self._transactions_store.add_documents(docs, ids=ids)
 
+    @trace(name=TraceName.QDRANT_SIMILARITY_SEARCH.value)
     def similarity_search(
         self, query: str, k: int = DEFAULT_SIMILARITY_SEARCH_K
     ) -> list[Document]:
         return self._docs_store.similarity_search(query, k=k)
 
+    @trace(name=TraceName.QDRANT_SIMILARITY_SEARCH.value)
     def similarity_search_with_score(
         self, query: str, k: int = DEFAULT_SIMILARITY_SEARCH_K
     ) -> list[tuple[Document, float]]:
         return self._docs_store.similarity_search_with_score(query, k=k)
 
+    @trace(name=TraceName.QDRANT_SIMILARITY_SEARCH_TRANSACTIONS.value)
     def similarity_search_transactions(
         self, query: str, k: int = DEFAULT_SIMILARITY_SEARCH_K
     ) -> list[Document]:
         return self._transactions_store.similarity_search(query, k=k)
 
+    @trace(name=TraceName.QDRANT_SIMILARITY_SEARCH_TRANSACTIONS.value)
     def similarity_search_transactions_with_score(
-        self, query: str, k: int = DEFAULT_SIMILARITY_SEARCH_K
+        self,
+        query: str,
+        k: int = DEFAULT_SIMILARITY_SEARCH_K,
+        category: str | None = None,
     ) -> list[tuple[Document, float]]:
-        return self._transactions_store.similarity_search_with_score(query, k=k)
+        filter_ = (
+            Filter(
+                must=[
+                    FieldCondition(
+                        key="metadata.category", match=MatchValue(value=category)
+                    )
+                ]
+            )
+            if category is not None
+            else None
+        )
+        return self._transactions_store.similarity_search_with_score(
+            query, k=k, filter=filter_
+        )
 
+    @trace(name=TraceName.QDRANT_GET_ALL_TRANSACTIONS.value)
     def get_all_transactions(
         self,
         category: str | None = None,

@@ -27,13 +27,12 @@ make seed
 
 ## Langfuse tracing (optional)
 
-Uses [Langfuse Cloud](https://cloud.langfuse.com) (managed) to trace chat/embedding calls. Sign up, create a project, and set in `.env`:
+Uses the [Langfuse Python SDK](https://langfuse.com/docs/sdk/python/sdk-v3) (v4) to trace chat/embedding calls. Sign up, create a project, and set in `.env`:
 
 ```bash
-LANGFUSE_ENABLED=true
-LANGFUSE_PUBLIC_KEY=pk-lf-...
 LANGFUSE_SECRET_KEY=sk-lf-...
-LANGFUSE_HOST=https://cloud.langfuse.com   # or https://jp.cloud.langfuse.com / https://us.cloud.langfuse.com for a regional deployment
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_BASE_URL=https://cloud.langfuse.com   # or https://jp.cloud.langfuse.com / https://us.cloud.langfuse.com for a regional deployment
 ```
 
 ## How the cache works

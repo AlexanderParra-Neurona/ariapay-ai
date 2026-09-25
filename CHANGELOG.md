@@ -7,7 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-09-14
+
+#### Added
+- `/chat` now answers FAQ, account, and transaction questions through a single tool-calling agent built with LangGraph (`StateGraph` + `ToolNode`), instead of separate hardcoded doc/transaction/account branches.
+- `search_faq` added as a callable tool alongside `get_account`/`search_transactions`, so the agent can choose which data source to query.
+
+#### Changed
+- Chat completions now go through `langchain-litellm`'s `ChatLiteLLM` (via a shared `get_chat_model()` factory) instead of a custom `LLMService.chat` method; `LLMService` is embeddings-only again. Classifiers and the agent now build on LangChain's message types and `.bind_tools()`/`.invoke()`.
+- Tools (`search_faq`, `search_transactions`, `get_account`) are now LangChain `BaseTool`/`StructuredTool` instances instead of a custom `Tool` dataclass, so they plug directly into LangGraph's `ToolNode`.
+- Chat model switched from `Meta-Llama-3.1-8B-Instruct-Turbo` to `Qwen/Qwen3-32B` for more reliable native tool-calling; Qwen3's "thinking" mode is disabled for chat completions to avoid burning the token budget on reasoning output.
+- `get_tools()` now omits `get_account`/`search_transactions` entirely when the user has no access token, rather than exposing tools the model can't authenticate for.
+- Account and transaction answer formatting deduplicated into a shared `app/services/formatting.py`, replacing copies in the router and individual tools.
+- Dev server (`make dev`) now runs with `--no-sync` and reload scoped to `app/`, avoiding lockfile resync and restart loops from unrelated file changes.
+
+### 2026-09-11
+
+#### Added
+- Function-calling tools for FAQ search, transaction search, and account lookup, each gated on the caller holding a signed-in access token.
+- RAG quality eval harness (`ragas`): context precision/recall, faithfulness, answer relevancy/correctness, and semantic similarity, judged by a DeepInfra-backed LLM; runs only on demand via a dedicated `eval` pytest marker.
+
+### 2026-09-10
+
+#### Added
+- Request/response tracing via custodia SDK: chat answering, classifiers, and hybrid/sparse retrieval and RRF fusion now emit spans, and FastAPI is instrumented end-to-end via OpenTelemetry.
+
+#### Changed
+- custodia-sdk moved from a vendored local package to a published PyPI dependency (previously pinned to a private git source).
+- Langfuse tracing and its config/dependencies fully removed, replaced by custodia.
+
 ### 2026-09-02
+
+#### Added
+- Script for diagnosing and cleaning up Docker disk space.
+- Railway deploy path as an alternative to the GCP VM: `railway.json`, env-sync script, and Docker build changes to work under Railway's builder.
+- `APP_ENV` tag stamped on every LLM call, so dev/staging/prod traces are distinguishable in Langfuse dashboards.
+
+#### Changed
+- Self-hosted Langfuse stack (`docker-compose.langfuse.yml`, `.env.langfuse.example`) removed in favor of Langfuse Cloud.
+- GCP deploy scripts moved under `deploy/gcp/`, separating them from generic VM/nginx setup to make room for other deploy targets.
+- Nginx timeout settings increased on the chat endpoint to prevent connection cuts on longer responses.
+- Minimal logging restored for auth failures, upstream API errors, and classifier parse fallback, since tracing only covered LLM calls and was otherwise silent.
+- App now fails fast on a missing `QDRANT_API_KEY` instead of silently sending a placeholder value.
+
+#### Fixed
+- Staging domain corrected to `ariapay.id` across README/scripts; Docker enable step and nginx SSL block verification fixed on the deploy VM.
+- Certbot's nginx setup now verifies the 443 block landed in the intended site file, preventing a stale default site from silently capturing it and 404ing requests.
 
 #### Changed
 - Docker image rebuilt as multi-stage (builder/runtime split) — production image no longer ships the `uv` toolchain or dev-only tooling, cutting image size ~57% (1.63GB → 723MB).

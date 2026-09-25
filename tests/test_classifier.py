@@ -1,28 +1,18 @@
-from typing import Any
-
 import pytest
+from langchain_core.messages import AIMessage, BaseMessage
 
 from app.services.classification.classifier import QueryClassifier
 from app.services.classification.types import QueryCategory
-from app.services.llm.base import LLMService
 
 
-class StubLLMService(LLMService):
+class StubLLMService:
     def __init__(self, reply: str) -> None:
         self._reply = reply
-        self.last_messages: list[dict[str, str]] | None = None
+        self.last_messages: list[BaseMessage] | None = None
 
-    def embed(self, text: str) -> list[float]:
-        raise NotImplementedError
-
-    def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        raise NotImplementedError
-
-    def chat(
-        self, messages: list[dict[str, str]], metadata: dict[str, Any] | None = None
-    ) -> str:
+    def invoke(self, messages: list[BaseMessage]) -> AIMessage:
         self.last_messages = messages
-        return self._reply
+        return AIMessage(content=self._reply)
 
 
 @pytest.mark.parametrize(
@@ -62,11 +52,9 @@ def test_classify_sends_question_as_user_message() -> None:
     classifier.classify("how do I top up my wallet?")
 
     assert stub.last_messages is not None
-    assert stub.last_messages[-1] == {
-        "role": "user",
-        "content": "how do I top up my wallet?",
-    }
-    assert stub.last_messages[0]["role"] == "system"
+    assert stub.last_messages[-1].content == "how do I top up my wallet?"
+    assert stub.last_messages[-1].type == "human"
+    assert stub.last_messages[0].type == "system"
 
 
 @pytest.mark.parametrize(

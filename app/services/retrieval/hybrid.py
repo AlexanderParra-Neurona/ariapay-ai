@@ -1,10 +1,12 @@
 from langchain_core.documents import Document
 
 from app.config import settings
+from app.constants import TraceName
 from app.services.classification.types import TransactionScope
 from app.services.qdrant.qdrant import QdrantService
 from app.services.retrieval.fusion import rrf_fuse
 from app.services.retrieval.sparse import SparseRetriever
+from app.tracing import trace
 
 
 class HybridRetriever:
@@ -12,6 +14,7 @@ class HybridRetriever:
         self._qdrant_service = qdrant_service
         self._sparse = SparseRetriever(qdrant_service)
 
+    @trace(name=TraceName.HYBRID_RETRIEVER_SEARCH.value)
     def search(
         self, query: str, top_k: int | None = None
     ) -> list[tuple[Document, float]]:
@@ -38,7 +41,8 @@ class HybridRetriever:
             )
 
         top_k = top_k or settings.RETRIEVAL_TOP_K
+        category = scope.category if scope is not None else None
         hits = self._qdrant_service.similarity_search_transactions_with_score(
-            query, k=top_k
+            query, k=top_k, category=category
         )
         return [doc for doc, _ in hits]

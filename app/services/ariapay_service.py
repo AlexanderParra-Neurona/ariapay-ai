@@ -12,8 +12,9 @@ from app.constants import (
     HTTP_STATUS_OK,
     HTTP_STATUS_UNAUTHORIZED,
     HTTP_TIMEOUT_DEFAULT_SECONDS,
+    TraceName,
 )
-
+from app.tracing import trace_async
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class AriapayAPIError(Exception):
     pass
 
 
+@trace_async(name=TraceName.ARIAPAY_GET_ME.value)
 async def get_me(access_token: str) -> dict:
     async with httpx.AsyncClient() as client:
         resp = await client.get(
@@ -45,6 +47,7 @@ async def get_me(access_token: str) -> dict:
     return resp.json()["user"]
 
 
+@trace_async(name=TraceName.ARIAPAY_LOGIN.value)
 async def login(phone_number: str, country_code: str, password: str) -> str:
     async with httpx.AsyncClient() as client:
         resp = await client.post(
@@ -66,6 +69,7 @@ async def login(phone_number: str, country_code: str, password: str) -> str:
     return resp.json()["user"]["passcode_token"]
 
 
+@trace_async(name=TraceName.ARIAPAY_VERIFY_PASSCODE.value)
 async def verify_passcode(token: str, passcode: str) -> dict:
     async with httpx.AsyncClient() as client:
         resp = await client.post(
