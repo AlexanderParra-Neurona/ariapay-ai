@@ -203,6 +203,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
+    { name = "langchain" },
     { name = "langchain-litellm" },
     { name = "langchain-qdrant" },
     { name = "langfuse" },
@@ -235,6 +236,7 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "httpx", specifier = ">=0.28.1" },
+    { name = "langchain", specifier = ">=1.4.0" },
     { name = "langchain-litellm", specifier = ">=0.7.1" },
     { name = "langchain-qdrant", specifier = ">=1.1.0" },
     { name = "langfuse", specifier = ">=4" },
