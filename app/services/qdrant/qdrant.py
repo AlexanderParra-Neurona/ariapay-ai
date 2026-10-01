@@ -21,7 +21,6 @@ from app.constants import (
     DEFAULT_TRANSACTIONS_MAX_RESULTS,
     DOCS_VECTOR_NAME,
     POINT_ID_HASH_LENGTH,
-    POINT_TYPE_DOC,
     POINT_TYPE_TRANSACTION,
     QDRANT_SCROLL_BATCH_SIZE,
     TRANSACTIONS_VECTOR_NAME,
@@ -43,12 +42,6 @@ class QdrantService:
         )
         self._embeddings = embeddings or LLMServiceEmbeddings(get_llm_service())
         self._ensure_collection()
-        self._docs_store = QdrantVectorStore(
-            client=self._client,
-            collection_name=COLLECTION_NAME,
-            embedding=self._embeddings,
-            vector_name=DOCS_VECTOR,
-        )
         self._transactions_store = QdrantVectorStore(
             client=self._client,
             collection_name=COLLECTION_NAME,
@@ -108,20 +101,6 @@ class QdrantService:
         normalized = text.strip().lower()
         return hashlib.sha256(normalized.encode()).hexdigest()[:POINT_ID_HASH_LENGTH]
 
-    @trace(name=TraceName.QDRANT_UPSERT_DOCS.value)
-    def upsert_doc_chunks(self, chunks: list[tuple[str, str, str]]) -> None:
-        if not chunks:
-            return
-        docs = [
-            Document(
-                page_content=f"{heading}\n\n{text}" if heading else text,
-                metadata={"type": POINT_TYPE_DOC, "source": source, "heading": heading},
-            )
-            for source, heading, text in chunks
-        ]
-        ids = [self._point_id(f"{source}:{heading}") for source, heading, _ in chunks]
-        self._docs_store.add_documents(docs, ids=ids)
-
     @trace(name=TraceName.QDRANT_UPSERT_TRANSACTIONS.value)
     def upsert_transactions(
         self, transactions: list[tuple[str, str, float, str]]
@@ -154,18 +133,6 @@ class QdrantService:
             for merchant_name, _, _, timestamp in transactions
         ]
         self._transactions_store.add_documents(docs, ids=ids)
-
-    @trace(name=TraceName.QDRANT_SIMILARITY_SEARCH.value)
-    def similarity_search(
-        self, query: str, k: int = DEFAULT_SIMILARITY_SEARCH_K
-    ) -> list[Document]:
-        return self._docs_store.similarity_search(query, k=k)
-
-    @trace(name=TraceName.QDRANT_SIMILARITY_SEARCH.value)
-    def similarity_search_with_score(
-        self, query: str, k: int = DEFAULT_SIMILARITY_SEARCH_K
-    ) -> list[tuple[Document, float]]:
-        return self._docs_store.similarity_search_with_score(query, k=k)
 
     @trace(name=TraceName.QDRANT_SIMILARITY_SEARCH_TRANSACTIONS.value)
     def similarity_search_transactions_with_score(

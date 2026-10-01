@@ -1,33 +1,13 @@
-from custodia import trace
 from langchain_core.documents import Document
 
 from app.config import settings
-from app.constants import TraceName
 from app.services.classification.types import TransactionScope
 from app.services.qdrant.qdrant import QdrantService
-from app.services.retrieval.fusion import rrf_fuse
-from app.services.retrieval.sparse import SparseRetriever
 
 
 class HybridRetriever:
     def __init__(self, qdrant_service: QdrantService) -> None:
         self._qdrant_service = qdrant_service
-        self._sparse = SparseRetriever(qdrant_service)
-
-    @trace(name=TraceName.HYBRID_RETRIEVER_SEARCH.value)
-    def search(
-        self, query: str, top_k: int | None = None
-    ) -> list[tuple[Document, float]]:
-        top_k = top_k or settings.RETRIEVAL_TOP_K
-        pool = settings.RETRIEVAL_CANDIDATE_POOL
-
-        dense_hits = self._qdrant_service.similarity_search_with_score(query, k=pool)
-        sparse_hits = self._sparse.search(query, top_k=pool)
-
-        if not dense_hits and not sparse_hits:
-            return []
-
-        return rrf_fuse([dense_hits, sparse_hits])[:top_k]
 
     def search_transactions(
         self,
