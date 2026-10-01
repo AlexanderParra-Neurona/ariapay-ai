@@ -23,8 +23,6 @@ def get_cached_qdrant_service() -> QdrantService:
     return QdrantService(embeddings=embeddings)
 
 
-
-
 def seed_transactions(service) -> None:
     if not TRANSACTIONS_FILE.exists():
         return
