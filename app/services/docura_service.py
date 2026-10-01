@@ -1,5 +1,7 @@
 import logging
+
 import httpx
+from custodia import trace_async
 
 from app.config import settings
 from app.constants import (
@@ -8,8 +10,6 @@ from app.constants import (
     HTTP_TIMEOUT_DEFAULT_SECONDS,
     TraceName,
 )
-
-from app.tracing import trace_async
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ async def query(question: str) -> dict:
     async with httpx.AsyncClient() as client:
         resp = await client.post(
             f"{settings.DOCURA_API_URL}{DOCURA_QUERY_PATH}",
-            json={"questions": question},
+            json={"question": question},
             timeout=HTTP_TIMEOUT_DEFAULT_SECONDS,
         )
     if resp.status_code != HTTP_STATUS_OK:

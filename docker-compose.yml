@@ -11,15 +11,19 @@ networks:
 
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        APP_PORT: ${APP_PORT:-8000}
     restart: unless-stopped
     networks:
       - frontend
       - backend
       - default
     ports:
-      - "127.0.0.1:${APP_PORT:-8000}:8000"
+      - "127.0.0.1:${APP_PORT:-8000}:${APP_PORT:-8000}"
     environment:
+      APP_PORT: ${APP_PORT:-8000}
       APP_ENV: ${APP_ENV:-development}
       ARIAPAY_API_URL: ${ARIAPAY_API_URL}
       DEEPINFRA_API_TOKEN: ${DEEPINFRA_API_TOKEN}
@@ -29,14 +33,17 @@ services:
       QDRANT_URL: ${QDRANT_URL}
       QDRANT_API_KEY: ${QDRANT_API_KEY}
       QDRANT_COLLECTION: ${QDRANT_COLLECTION}
-      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
-      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
-      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-https://cloud.langfuse.com}
+      # .env's DOCURA_API_URL is for host-run dev (localhost); in the neurona
+      # stack docura-api listens on docura/.env's APP_PORT
+      DOCURA_API_URL: http://docura-api:8001
+      CUSTODIA_INGEST_URL: ${CUSTODIA_INGEST_URL:-http://host.docker.internal:8000/v1/traces}
+      CUSTODIA_API_KEY: ${CUSTODIA_API_KEY:-}
+      CUSTODIA_SERVICE_NAME: ${CUSTODIA_SERVICE_NAME:-ariabot}
 
     volumes:
       - ./.llm-provider:/app/.llm-provider:ro
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/health')"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:$${APP_PORT}/v1/health')\""]
       interval: 30s
       timeout: 5s
       retries: 5

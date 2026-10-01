@@ -1,4 +1,5 @@
 import litellm
+from custodia import trace
 
 from app.config import settings
 from app.constants import (
@@ -8,7 +9,6 @@ from app.constants import (
     TraceName,
 )
 from app.services.llm.base import LLMService
-from app.tracing import trace
 
 
 class LiteLLMService(LLMService):

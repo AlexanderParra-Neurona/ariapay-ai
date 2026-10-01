@@ -1,6 +1,7 @@
 import logging
 
 import httpx
+from custodia import trace_async
 
 from app.config import settings
 from app.constants import (
@@ -14,7 +15,6 @@ from app.constants import (
     HTTP_TIMEOUT_DEFAULT_SECONDS,
     TraceName,
 )
-from app.tracing import trace_async
 
 logger = logging.getLogger(__name__)
 

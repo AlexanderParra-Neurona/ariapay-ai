@@ -1,6 +1,7 @@
 .PHONY: up down clean build logs dev ui scrape faq ingest-qdrant all
 
 COMPOSE = docker compose --env-file .env -f docker-compose.yml
+APP_PORT ?= $(or $(shell grep -E '^APP_PORT=' .env 2>/dev/null | tail -1 | cut -d= -f2),8000)
 
 up:
 	$(COMPOSE) up --build -d
@@ -15,7 +16,7 @@ logs:
 	$(COMPOSE) logs -f
 
 dev:
-	uv run --no-sync uvicorn app.main:app --reload --reload-dir app --port 8000
+	uv run --no-sync uvicorn app.main:app --reload --reload-dir app --port $(APP_PORT)
 
 ui:
 	uv run python -m app.ui

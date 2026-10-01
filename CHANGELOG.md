@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-10-01
+
+#### Changed
+- Tracing switched back from the Langfuse SDK to `custodia-sdk[fastapi]>=0.1.4` (PyPI). `@trace`/`@trace_async`/`@trace_tool_call(_async)` and `TraceIOMiddleware` are imported from `custodia` again; env vars are `CUSTODIA_INGEST_URL`/`CUSTODIA_API_KEY`/`CUSTODIA_SERVICE_NAME`.
+
+#### Removed
+- In-repo Langfuse tracing layer: `app/tracing.py` (decorator wrappers and `mask_pii`), `app/middleware.py`, the Langfuse LangChain `CallbackHandler` on the agent, the `langfuse` dependency, and `LANGFUSE_*` env vars.
+- Unused `QdrantService.upsert_doc_chunk`, `upsert_transaction`, and `similarity_search_transactions` (no callers).
+- Unused `python-dotenv` (pulled in by `pydantic-settings`), and unused `black`, `isort`, and `langchain-community` pins from the dev group (`langchain-community` still resolves via `ragas`).
+
 ### 2026-09-14
 
 #### Added

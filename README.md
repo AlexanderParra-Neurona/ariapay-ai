@@ -25,14 +25,14 @@ uv run uvicorn app.main:app --reload
 make seed
 ```
 
-## Langfuse tracing (optional)
+## Custodia tracing
 
-Uses the [Langfuse Python SDK](https://langfuse.com/docs/sdk/python/sdk-v3) (v4) to trace chat/embedding calls. Sign up, create a project, and set in `.env`:
+Uses [`custodia-sdk`](https://pypi.org/project/custodia-sdk/) to export OpenTelemetry traces (HTTP requests, agent loop, tool calls, retrieval, LLM calls) to a Custodia ingest endpoint. Set in `.env`:
 
 ```bash
-LANGFUSE_SECRET_KEY=sk-lf-...
-LANGFUSE_PUBLIC_KEY=pk-lf-...
-LANGFUSE_BASE_URL=https://cloud.langfuse.com   # or https://jp.cloud.langfuse.com / https://us.cloud.langfuse.com for a regional deployment
+CUSTODIA_INGEST_URL=http://localhost:8000/v1/traces   # http://host.docker.internal:8000/v1/traces under docker compose
+CUSTODIA_API_KEY=...
+CUSTODIA_SERVICE_NAME=ariabot
 ```
 
 ## How the cache works
