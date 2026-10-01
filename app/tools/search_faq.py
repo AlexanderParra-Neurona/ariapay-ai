@@ -1,10 +1,11 @@
 from typing import Annotated
 
-from custodia import trace_tool_call
+from custodia import trace_tool_call_async
 from langchain_core.tools import tool
 
 from app.constants import MSG_NO_DOCS_FOUND, TraceName
-from app.services.retrieval import get_hybrid_retriever
+from app.services.docura_service import DocuraAPIError
+from app.services.docura_service import query as docura_query
 
 _NAME = TraceName.TOOL_SEARCH_FAQ.value
 _DESCRIPTION = (
@@ -15,20 +16,23 @@ _DESCRIPTION = (
 
 
 @tool(_NAME, description=_DESCRIPTION)
-@trace_tool_call(name=_NAME, description=_DESCRIPTION)
-def search_faq(
+@trace_tool_call_async(name=_NAME, description=_DESCRIPTION)
+async def search_faq(
     query: Annotated[str, "The user's question, in their own words."],
 ) -> str:
-    hits = get_hybrid_retriever().search(query)
-    if not hits:
+    try:
+        result = await docura_query(query)
+    except DocuraAPIError:
         return MSG_NO_DOCS_FOUND
 
-    blocks = [
-        f"[{doc.metadata.get('source', '')} - {doc.metadata.get('heading', '')}]\n"
-        f"{doc.page_content}"
-        for doc, _ in hits
-    ]
-    return "\n\n".join(blocks)
+    answer = result.get("answer", "")
+    if not answer:
+        return MSG_NO_DOCS_FOUND
+
+    sources = result.get("sources", "")
+    if sources:
+        return f"{answer}\n\n(Sources: {', '.join(sources)})"
+    return answer
 
 
 def build_search_faq_tool():
