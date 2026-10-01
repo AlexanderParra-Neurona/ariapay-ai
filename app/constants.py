@@ -28,6 +28,8 @@ ARIAPAY_ME_PATH = "/api/v1/users/me"
 ARIAPAY_LOGIN_PATH = "/api/v1/login"
 ARIAPAY_PASSCODE_VERIFY_PATH = "/api/v1/passcode/verify"
 
+DOCURA_QUERY_PATH = "/v1/query"
+
 # --- LLM ---
 
 
@@ -43,6 +45,7 @@ class TraceName(str, Enum):
     QDRANT_SIMILARITY_SEARCH = "qdrant_similarity_search"
     QDRANT_SIMILARITY_SEARCH_TRANSACTIONS = "qdrant_similarity_search_transactions"
     QDRANT_GET_ALL_TRANSACTIONS = "qdrant_get_all_transactions"
+    DOCURA_QUERY = "docura_query"
     ARIAPAY_GET_ME = "ariapay_get_me"
     ARIAPAY_LOGIN = "ariapay_login"
     ARIAPAY_VERIFY_PASSCODE = "ariapay_verify_passcode"

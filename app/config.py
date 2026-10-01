@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     DEEPINFRA_EMBED_MODEL: str = "changeme"
     DEEPINFRA_EMBED_DIM: int = 4096
 
+    DOCURA_API_URL: str = "changeme"
+
     QDRANT_URL: str = "changeme"
     QDRANT_API_KEY: str | None = None
     QDRANT_COLLECTION: str = "changeme"
