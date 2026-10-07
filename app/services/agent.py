@@ -1,5 +1,7 @@
 import logging
+from datetime import datetime
 from functools import lru_cache
+from zoneinfo import ZoneInfo
 
 from custodia import trace_async
 from langchain_core.messages import SystemMessage, ToolMessage
@@ -8,12 +10,14 @@ from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 
 from app.constants import (
+    APP_TIMEZONE,
     MSG_ACCOUNT_FETCH_FAILED,
     MSG_AGENT_NO_ANSWER,
     MSG_AGENT_TOO_COMPLEX,
     MSG_NO_DOCS_FOUND,
     MSG_NO_TRANSACTIONS_FOUND,
     MSG_SESSION_EXPIRED,
+    MSG_TRANSACTIONS_FETCH_FAILED,
     TraceName,
 )
 from app.services.llm import get_chat_model
@@ -24,12 +28,22 @@ logger = logging.getLogger(__name__)
 _SYSTEM_PROMPT = """You are Ariabot, Ariapay's assistant. Answer using the provided \
 tools when the question needs FAQ/product info, the user's transactions, or the \
 user's account details. If no tool result answers the question, say so concisely. \
-Never invent transaction, account, or FAQ content that didn't come from a tool."""
+Never invent transaction, account, or FAQ content that didn't come from a tool. \
+You can only read the user's data: you cannot make payments, scan QR codes, or \
+change anything, and should say so if asked.
+
+Today's date is {today}. Resolve relative periods ("last month", "this week") \
+against it before calling a tool."""
+
+_AUTH_LOST_TOOL_MESSAGES = {
+    MSG_SESSION_EXPIRED,
+    MSG_ACCOUNT_FETCH_FAILED,
+    MSG_TRANSACTIONS_FETCH_FAILED,
+}
 
 _RECURSION_LIMIT = 8
 
 _NO_DATA_TOOL_MESSAGES = {MSG_NO_DOCS_FOUND, MSG_NO_TRANSACTIONS_FOUND}
-_AUTH_LOST_TOOL_MESSAGES = {MSG_SESSION_EXPIRED, MSG_ACCOUNT_FETCH_FAILED}
 
 
 @lru_cache(maxsize=2)
@@ -44,8 +58,12 @@ def _build_graph(signed_in: bool):
     model = get_chat_model().bind_tools(tools)
 
     def call_model(state: MessagesState) -> dict:
+        today = datetime.now(ZoneInfo(APP_TIMEZONE)).date().isoformat()
         response = model.invoke(
-            [SystemMessage(content=_SYSTEM_PROMPT), *state["messages"]]
+            [
+                SystemMessage(content=_SYSTEM_PROMPT.format(today=today)),
+                *state["messages"],
+            ]
         )
         return {"messages": [response]}
 
