@@ -36,6 +36,7 @@ services:
       # .env's DOCURA_API_URL is for host-run dev (localhost); in the neurona
       # stack docura-api listens on docura/.env's APP_PORT
       DOCURA_API_URL: http://docura-api:8001
+      DOCURA_API_KEY: ${DOCURA_API_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-https://cloud.langfuse.com}

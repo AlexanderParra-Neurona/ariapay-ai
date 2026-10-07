@@ -41,6 +41,8 @@ ARIAPAY_TRANSACTIONS_PAGE_SIZE_MAX = 100
 APP_TIMEZONE = "Asia/Jakarta"
 
 DOCURA_QUERY_PATH = "/v1/query"
+# a Docura query is an intent-classification LLM call plus an answer LLM call
+HTTP_TIMEOUT_DOCURA_SECONDS = 120
 
 # --- LLM ---
 
