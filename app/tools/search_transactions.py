@@ -1,7 +1,6 @@
 import re
 from typing import Annotated, Literal
 
-from custodia import trace_tool_call
 from langchain_core.tools import BaseTool, tool
 
 from app.constants import (
@@ -13,6 +12,7 @@ from app.constants import (
 from app.services.classification.types import TransactionScope
 from app.services.formatting import format_transaction_bullets
 from app.services.retrieval import get_hybrid_retriever
+from app.tracing import trace_tool_call
 
 _WANTS_ALL_PATTERN = re.compile(
     r"\b(all|every|entire|total|how much|how many|altogether|combined)\b",

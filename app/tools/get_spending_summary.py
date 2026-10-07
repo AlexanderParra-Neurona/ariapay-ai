@@ -1,7 +1,6 @@
 import logging
 from typing import Annotated
 
-from custodia import trace_tool_call_async
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import BaseTool, StructuredTool
 
@@ -17,6 +16,7 @@ from app.services.ariapay_transactions_service import (
     get_expenses,
 )
 from app.services.formatting import format_expenses
+from app.tracing import trace_tool_call_async
 
 logger = logging.getLogger(__name__)
 

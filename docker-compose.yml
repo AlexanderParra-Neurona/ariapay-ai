@@ -36,9 +36,9 @@ services:
       # .env's DOCURA_API_URL is for host-run dev (localhost); in the neurona
       # stack docura-api listens on docura/.env's APP_PORT
       DOCURA_API_URL: http://docura-api:8001
-      CUSTODIA_INGEST_URL: ${CUSTODIA_INGEST_URL:-http://host.docker.internal:8000/v1/traces}
-      CUSTODIA_API_KEY: ${CUSTODIA_API_KEY:-}
-      CUSTODIA_SERVICE_NAME: ${CUSTODIA_SERVICE_NAME:-ariabot}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-https://cloud.langfuse.com}
 
     volumes:
       - ./.llm-provider:/app/.llm-provider:ro

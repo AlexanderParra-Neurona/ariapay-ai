@@ -8,7 +8,6 @@ deliberately not wrapped here.
 import logging
 
 import httpx
-from custodia import trace_async
 
 from app.config import settings
 from app.constants import (
@@ -27,6 +26,7 @@ from app.constants import (
     TraceName,
 )
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError
+from app.tracing import trace_async
 
 logger = logging.getLogger(__name__)
 

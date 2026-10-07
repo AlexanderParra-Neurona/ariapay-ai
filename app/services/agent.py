@@ -3,8 +3,8 @@ from datetime import datetime
 from functools import lru_cache
 from zoneinfo import ZoneInfo
 
-from custodia import trace_async
 from langchain_core.messages import SystemMessage, ToolMessage
+from langfuse.langchain import CallbackHandler
 from langgraph.errors import GraphRecursionError
 from langgraph.graph import START, MessagesState, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -22,6 +22,7 @@ from app.constants import (
 )
 from app.services.llm import get_chat_model
 from app.tools import get_tools
+from app.tracing import trace_async
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,8 @@ _AUTH_LOST_TOOL_MESSAGES = {
 _RECURSION_LIMIT = 8
 
 _NO_DATA_TOOL_MESSAGES = {MSG_NO_DOCS_FOUND, MSG_NO_TRANSACTIONS_FOUND}
+
+_langfuse_handler = CallbackHandler()
 
 
 @lru_cache(maxsize=2)
@@ -95,6 +98,7 @@ async def run_agent(question: str, access_token: str | None = None) -> tuple[str
             config={
                 "recursion_limit": _RECURSION_LIMIT,
                 "configurable": {"access_token": access_token},
+                "callbacks": [_langfuse_handler],
             },
         )
     except GraphRecursionError:

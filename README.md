@@ -25,15 +25,17 @@ uv run uvicorn app.main:app --reload
 make seed
 ```
 
-## Custodia tracing
+## Langfuse tracing (optional)
 
-Uses [`custodia-sdk`](https://pypi.org/project/custodia-sdk/) to export OpenTelemetry traces (HTTP requests, agent loop, tool calls, retrieval, LLM calls) to a Custodia ingest endpoint. Set in `.env`:
+Uses the [Langfuse Python SDK](https://langfuse.com/docs/sdk/python/sdk-v3) (v4) to trace HTTP requests, the agent loop, tool calls, retrieval, and LLM calls. Sign up, create a project, and set in `.env`:
 
 ```bash
-CUSTODIA_INGEST_URL=http://localhost:8000/v1/traces   # http://host.docker.internal:8000/v1/traces under docker compose
-CUSTODIA_API_KEY=...
-CUSTODIA_SERVICE_NAME=ariabot
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_BASE_URL=https://cloud.langfuse.com   # or https://jp.cloud.langfuse.com / https://us.cloud.langfuse.com for a regional deployment
 ```
+
+Credentials and PII (passwords, passcodes, tokens, email, phone numbers) are redacted by `app.tracing.mask_pii` before spans leave the process. Use the `app.tracing` decorators rather than a bare `@observe` so arguments are recorded by name and the mask can see them.
 
 ## How the cache works
 

@@ -1,12 +1,12 @@
 import logging
 import re
 
-from custodia import trace
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.constants import TraceName
 from app.services.classification.types import QueryCategory
+from app.tracing import trace
 
 _SYSTEM_PROMPT = """You are a query classifier for Ariapay, a payments app assistant.
 Classify the user's message into exactly one category:

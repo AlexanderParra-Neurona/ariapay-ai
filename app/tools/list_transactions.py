@@ -3,7 +3,6 @@ import logging
 from datetime import date
 from typing import Annotated, Literal
 
-from custodia import trace_tool_call_async
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import BaseTool, StructuredTool
 
@@ -26,6 +25,7 @@ from app.services.ariapay_transactions_service import (
     list_transactions as fetch_transactions,
 )
 from app.services.formatting import format_transaction_page
+from app.tracing import trace_tool_call_async
 
 logger = logging.getLogger(__name__)
 

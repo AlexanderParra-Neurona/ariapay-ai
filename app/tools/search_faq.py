@@ -1,11 +1,11 @@
 from typing import Annotated
 
-from custodia import trace_tool_call_async
 from langchain_core.tools import tool
 
 from app.constants import MSG_NO_DOCS_FOUND, TraceName
 from app.services.docura_service import DocuraAPIError
 from app.services.docura_service import query as docura_query
+from app.tracing import trace_tool_call_async
 
 _NAME = TraceName.TOOL_SEARCH_FAQ.value
 _DESCRIPTION = (

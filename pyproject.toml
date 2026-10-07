@@ -4,12 +4,12 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
-    "custodia-sdk[fastapi]>=0.1.4",
     "fastapi>=0.141.1",
     "httpx>=0.28.1",
     "langchain>=1.4.0",
     "langchain-litellm>=0.7.1",
     "langchain-qdrant>=1.1.0",
+    "langfuse>=4",
     "langgraph>=1.2.11",
     "litellm>=1.63.0",
     "opentelemetry-instrumentation-fastapi>=0.65b0",

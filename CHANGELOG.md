@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-10-07
+
+#### Changed
+- Tracing switched back from `custodia-sdk` to the Langfuse SDK (`langfuse>=4`), restoring `app/tracing.py`, `app/middleware.py`, and the Langfuse LangChain `CallbackHandler` on the agent. Env vars are `LANGFUSE_SECRET_KEY`/`LANGFUSE_PUBLIC_KEY`/`LANGFUSE_BASE_URL` again.
+
+#### Security
+- Traced function args are now recorded by parameter name instead of as a positional tuple, so `mask_pii` actually redacts credentials passed positionally (e.g. `login`'s password, `get_me`'s access token). `login`/`verify_passcode` no longer record their token return values, and `token`, `passcode_token`, `email`, and `phone_number` are redacted by key.
+- `mask_pii` now scrubs emails/phone numbers in strings at any nesting depth, and the phone pattern no longer matches ISO dates in tool output.
+
+#### Removed
+- `custodia-sdk` dependency (and its transitive `neurona-llm`) and `CUSTODIA_*` env vars.
+
 ### 2026-10-01
 
 #### Changed
