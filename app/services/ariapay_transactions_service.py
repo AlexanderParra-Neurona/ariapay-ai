@@ -9,6 +9,7 @@ import logging
 
 import httpx
 from custodia import trace_async
+
 from app.config import settings
 from app.constants import (
     ARIAPAY_EXPENSES_PATH,
@@ -26,18 +27,23 @@ from app.constants import (
     TraceName,
 )
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError
+
 logger = logging.getLogger(__name__)
 
 _category_ids: dict[str, int] = {}
 
+
 class AriapayReadOnlyViolation(Exception):
     pass
+
 
 class AriapayBadRequestError(AriapayAPIError):
     pass
 
+
 class AriapayNotFoundError(AriapayAPIError):
     pass
+
 
 async def _reject_non_get(request: httpx.Request) -> None:
     if request.method != "GET":
@@ -45,28 +51,28 @@ async def _reject_non_get(request: httpx.Request) -> None:
             f"Blocked {request.method} {request.url.path}: ariabot is read-only "
             "against the payments service"
         )
-        
+
+
 def _error_message(resp: httpx.Response) -> str:
     try:
         return resp.json().get("error_message") or resp.text
     except ValueError:
         return resp.text
-    
+
+
 async def _get(path: str, access_token: str, params: dict | None = None) -> dict:
     query = {k: v for k, v in (params or {}).items() if v is not None}
-    async with httpx.AsyncClient(
-        event_hooks={"request": [_reject_non_get]}
-    ) as client:
+    async with httpx.AsyncClient(event_hooks={"request": [_reject_non_get]}) as client:
         resp = await client.get(
             f"{settings.ARIAPAY_API_URL}{path}",
             params=query,
             headers={
                 **ARIAPAY_PLATFORM_HEADERS,
-                "Authorization": f"{BEARER_PREFIX} {access_token}"
+                "Authorization": f"{BEARER_PREFIX} {access_token}",
             },
-            timeout=HTTP_TIMEOUT_DEFAULT_SECONDS
+            timeout=HTTP_TIMEOUT_DEFAULT_SECONDS,
         )
-    
+
     if resp.status_code == HTTP_STATUS_UNAUTHORIZED:
         logger.warning("GET %s: invalid or expired access_token", path)
         raise AriapayAuthError("Missing or invalid access_token")
@@ -79,6 +85,7 @@ async def _get(path: str, access_token: str, params: dict | None = None) -> dict
         raise AriapayAPIError(f"Ariapay API returned {resp.status_code}")
     return resp.json()
 
+
 @trace_async(name=TraceName.ARIAPAY_LIST_TRANSACTION_CATEGORIES.value)
 async def list_transaction_categories(access_token: str) -> list[dict]:
     data = await _get(ARIAPAY_TRANSACTION_CATEGORIES_PATH, access_token)
@@ -90,6 +97,7 @@ async def resolve_category_id(access_token: str, name: str) -> int | None:
         categories = await list_transaction_categories(access_token)
         _category_ids.update({c["name"].lower(): c["id"] for c in categories})
     return _category_ids.get(name.lower())
+
 
 @trace_async(name=TraceName.ARIAPAY_LIST_TRANSACTIONS.value)
 async def list_transactions(
@@ -118,7 +126,8 @@ async def list_transactions(
             "page_size": page_size,
         },
     )
-    
+
+
 @trace_async(name=TraceName.ARIAPAY_GET_EXPENSES.value)
 async def get_expenses(
     access_token: str,
