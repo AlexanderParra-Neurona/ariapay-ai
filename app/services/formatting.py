@@ -42,3 +42,55 @@ def format_account(user: dict) -> str:
         lines.append("Cards:")
         lines.extend(card_lines)
     return "\n".join(lines)
+
+
+def format_amount(amount: str) -> str:
+    try:
+        return f"{CURRENCY_PREFIX}{float(amount):,.0f}"
+    except ValueError:
+        return f"{CURRENCY_PREFIX}{amount}"
+
+
+def format_transaction_page(data: dict) -> str:
+    days = data.get("transactions") or []
+    lines = []
+    for day in days:
+        lines.append(f"{day['date']} (spent {format_amount(day.get('total', '0'))}):")
+        for t in day.get("items") or []:
+            line = (
+                f"- {t.get('merchant_name', 'Unknown')} - "
+                f"{format_amount(t.get('amount', '0'))} - "
+                f"{t.get('category_name', 'Uncategorized')} - "
+                f"{t.get('status', 'UNKNOWN')}"
+            )
+            if t.get("failure_reason"):
+                line += f" ({t['failure_reason']})"
+            lines.append(line)
+
+    shown = sum(len(d.get("items") or []) for d in days)
+    total = (data.get("pagination") or {}).get("total_items", shown)
+    if total > shown:
+        lines.append(f"\nShowing {shown} of {total} matching transactions.")
+    return "\n".join(lines)
+
+
+def format_expenses(expenses: list[dict]) -> str:
+    blocks = []
+    for period in expenses:
+        categories = period.get("categories") or []
+        if not categories:
+            continue
+        p = period.get("period") or {}
+        grand_total = sum(float(c.get("total", 0)) for c in categories)
+        lines = [
+            f"Spending from {p.get('from')} to {p.get('to')}: "
+            f"{CURRENCY_PREFIX}{grand_total:,.0f} total"
+        ]
+        lines.extend(
+            f"- {c.get('category_name', 'Unknown')}: "
+            f"{format_amount(c.get('total', '0'))} across "
+            f"{c.get('transaction_count', 0)} transaction(s)"
+            for c in categories
+        )
+        blocks.append("\n".join(lines))
+    return "\n\n".join(blocks)
