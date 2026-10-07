@@ -47,7 +47,6 @@ class Settings(BaseSettings):
     QDRANT_COLLECTION: str = "changeme"
 
     RETRIEVAL_TOP_K: int = 5
-    RETRIEVAL_CANDIDATE_POOL: int = 20
     TRANSACTIONS_MAX_ALL: int = 200
 
     @property
