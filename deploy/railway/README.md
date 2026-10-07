@@ -41,6 +41,11 @@ then push all of them in one pass and deploy:
 bash deploy/railway/push_env.sh
 ```
 
+For the FAQ tool, `DOCURA_API_URL` must be Docura's public URL (Docura runs in its own
+Railway project, so there is no private network between them) and `DOCURA_API_KEY` its
+`API_KEY`. Both are in `docura/deploy/railway/.env` / `railway variable list --service
+docura-api --kv | grep RAILWAY_PUBLIC_DOMAIN`.
+
 Reads `.env` line by line, calls `railway variable set KEY=value --skip-deploys`
 for each (skipping comments, blank lines, and `APP_PORT` — that's only for local
 docker-compose's host port binding, Railway routes its own), then runs `railway up`

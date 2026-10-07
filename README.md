@@ -25,6 +25,25 @@ uv run uvicorn app.main:app --reload
 make seed
 ```
 
+## Docura (FAQ and product docs)
+
+The `search_faq` tool answers general questions by calling [Docura](../docura)'s
+`POST /v1/query` (`app/services/docura_service.py`). Set in `.env`:
+
+```bash
+DOCURA_API_URL=http://localhost:8001   # Docura API base, no /v1
+DOCURA_API_KEY=...                     # same value as API_KEY on the Docura API
+```
+
+- In the workspace stack (`neurona/docker-compose.yml`) ariabot reaches Docura at
+  `http://docura-api:8001` over the compose network; only `DOCURA_API_KEY` is read
+  from `.env`.
+- On Railway, use Docura's public URL (`https://docura-api-....up.railway.app`) and the
+  `API_KEY` from `docura/deploy/railway/.env`.
+- A Docura query makes two LLM calls, so the client waits up to 120s. Timeouts,
+  connection errors, 401s and 5xx all fall back to "Sorry, I don't have information on
+  that." and are logged as `Docura query: ...`; a 401 means the keys don't match.
+
 ## Langfuse tracing (optional)
 
 Uses the [Langfuse Python SDK](https://langfuse.com/docs/sdk/python/sdk-v3) (v4) to trace HTTP requests, the agent loop, tool calls, retrieval, and LLM calls. Sign up, create a project, and set in `.env`:
