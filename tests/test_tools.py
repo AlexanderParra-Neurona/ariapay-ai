@@ -2,13 +2,14 @@ import asyncio
 
 import httpx
 import pytest
-from langchain_core.documents import Document
 
+from app.services import docura_service
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError
 from app.services.ariapay_transactions_service import (
     AriapayReadOnlyViolation,
     _reject_non_get,
 )
+from app.services.docura_service import DocuraAPIError
 from app.tools import get_tools
 from app.tools.get_account import build_get_account_tool
 from app.tools.get_spending_summary import build_get_spending_summary_tool
@@ -18,23 +19,25 @@ from app.tools.search_faq import build_search_faq_tool
 _CONFIG = {"configurable": {"access_token": "tok-123"}}
 
 
-class StubHybridRetriever:
-    def __init__(self, docs: list[Document] | None = None) -> None:
-        self._docs = docs or []
-
-    def search(self, query: str, top_k: int | None = None):
-        return [(d, 1.0) for d in self._docs]
-
-
-def test_search_faq_tool_returns_doc_content(monkeypatch) -> None:
-    doc = Document(
-        page_content="Top up via bank transfer.",
-        metadata={"source": "faq.md", "heading": "Top up"},
+def _patch_docura_transport(monkeypatch, handler) -> None:
+    """Route docura_service's httpx.AsyncClient through a MockTransport."""
+    real_client = httpx.AsyncClient
+    monkeypatch.setattr(
+        docura_service.httpx,
+        "AsyncClient",
+        lambda **kwargs: real_client(transport=httpx.MockTransport(handler), **kwargs),
     )
     monkeypatch.setattr(
-        "app.tools.search_faq.get_hybrid_retriever",
-        lambda: StubHybridRetriever([doc]),
+        docura_service.settings, "DOCURA_API_URL", "http://docura:8000/"
     )
+
+
+def test_search_faq_tool_returns_answer_with_sources(monkeypatch) -> None:
+    async def fake_query(question: str) -> dict:
+        assert question == "how do I top up?"
+        return {"answer": "Top up via bank transfer.", "sources": ["faq.md"]}
+
+    monkeypatch.setattr("app.tools.search_faq.docura_query", fake_query)
     tool = build_search_faq_tool()
 
     output = asyncio.run(tool.ainvoke({"query": "how do I top up?"}))
@@ -42,14 +45,91 @@ def test_search_faq_tool_returns_doc_content(monkeypatch) -> None:
     assert "faq.md" in output
 
 
-def test_search_faq_tool_no_hits_returns_fallback_message(monkeypatch) -> None:
-    monkeypatch.setattr(
-        "app.tools.search_faq.get_hybrid_retriever", lambda: StubHybridRetriever([])
-    )
+def test_search_faq_tool_empty_answer_returns_fallback_message(monkeypatch) -> None:
+    async def fake_query(question: str) -> dict:
+        return {"answer": "", "sources": []}
+
+    monkeypatch.setattr("app.tools.search_faq.docura_query", fake_query)
     tool = build_search_faq_tool()
 
     output = asyncio.run(tool.ainvoke({"query": "anything"}))
     assert output == "Sorry, I don't have information on that."
+
+
+def test_search_faq_tool_docura_error_returns_fallback_message(monkeypatch) -> None:
+    async def fake_query(question: str) -> dict:
+        raise DocuraAPIError("Docura API timed out")
+
+    monkeypatch.setattr("app.tools.search_faq.docura_query", fake_query)
+    tool = build_search_faq_tool()
+
+    output = asyncio.run(tool.ainvoke({"query": "anything"}))
+    assert output == "Sorry, I don't have information on that."
+
+
+def test_docura_query_sends_api_key(monkeypatch) -> None:
+    seen = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["url"] = str(request.url)
+        seen["key"] = request.headers.get("X-API-Key")
+        return httpx.Response(200, json={"answer": "ok", "sources": []})
+
+    _patch_docura_transport(monkeypatch, handler)
+    monkeypatch.setattr(docura_service.settings, "DOCURA_API_KEY", "secret")
+
+    result = asyncio.run(docura_service.query("hi"))
+    assert result == {"answer": "ok", "sources": []}
+    assert seen == {"url": "http://docura:8000/v1/query", "key": "secret"}
+
+
+def test_docura_query_omits_api_key_when_unset(monkeypatch) -> None:
+    seen = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["has_key"] = "X-API-Key" in request.headers
+        return httpx.Response(200, json={"answer": "ok", "sources": []})
+
+    _patch_docura_transport(monkeypatch, handler)
+    monkeypatch.setattr(docura_service.settings, "DOCURA_API_KEY", None)
+
+    asyncio.run(docura_service.query("hi"))
+    assert seen == {"has_key": False}
+
+
+@pytest.mark.parametrize(
+    "handler",
+    [
+        lambda request: httpx.Response(
+            401, json={"detail": "Invalid or missing API key"}
+        ),
+        lambda request: httpx.Response(
+            502, json={"detail": "Could not generate answer"}
+        ),
+        lambda request: httpx.Response(200, text="not json"),
+    ],
+    ids=["unauthorized", "bad-gateway", "invalid-json"],
+)
+def test_docura_query_bad_response_raises_docura_error(monkeypatch, handler) -> None:
+    _patch_docura_transport(monkeypatch, handler)
+
+    with pytest.raises(DocuraAPIError):
+        asyncio.run(docura_service.query("hi"))
+
+
+@pytest.mark.parametrize(
+    "exc",
+    [httpx.ReadTimeout("timed out"), httpx.ConnectError("connection refused")],
+    ids=["timeout", "connect-error"],
+)
+def test_docura_query_transport_error_raises_docura_error(monkeypatch, exc) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        raise exc
+
+    _patch_docura_transport(monkeypatch, handler)
+
+    with pytest.raises(DocuraAPIError):
+        asyncio.run(docura_service.query("hi"))
 
 
 def test_get_account_tool_formats_user(monkeypatch) -> None:
