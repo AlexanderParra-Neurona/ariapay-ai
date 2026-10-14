@@ -7,10 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### 2026-10-14
+
+#### Added
+- `ARIAPAY_PAYMENT_API_URL` setting (`.env.example`, `docker-compose.yml`) for the Ariapay payment service (e.g. `https://api.ariapay.id/payment`). Transactions, categories, and expenses are read from it instead of `ARIAPAY_API_URL` — deployments must set it.
+- `list_transactions` output now ends with a note naming the largest successful transaction on the page, computed in code so the agent can answer "what's my biggest transaction?" without comparing amounts itself.
+
+#### Changed
+- Spending summary now calls `GET /api/v1/expenses` (was `/api/v1/transactions/categories/expenses`) and reads its flat `categories` list; per-category lines drop the transaction count.
+
+#### Fixed
+- A plain-text 404 from the Ariapay router (wrong base URL or path) is now reported as a fetch failure instead of being mistaken for "no matching transactions". JSON 404s with an `err_code` still mean not found.
+- PII mask could be skipped: the Langfuse client is now built with `mask_pii` in `app/tracing.py` at import time, since the agent's module-level `CallbackHandler` created an unmasked client before `app.main` registered the masked one.
+
 ### 2026-10-07
+
+#### Added
+- Read-only Ariapay transactions client (GET-only, enforced by a request hook) and two agent tools: `list_transactions` (day-grouped history, filterable by category, status, and period) and `get_spending_summary` (per-category totals for a month or date range). They replace `search_transactions` in the signed-in tool set.
+- Agent system prompt now includes today's date (`APP_TIMEZONE`) so relative periods like "last month" resolve correctly, and states the bot is read-only (no payments, QR scans, or edits).
+- `DOCURA_API_KEY` sent as `X-API-Key` on Docura queries; README and Railway docs cover Docura setup.
 
 #### Changed
 - Tracing switched back from `custodia-sdk` to the Langfuse SDK (`langfuse>=4`), restoring `app/tracing.py`, `app/middleware.py`, and the Langfuse LangChain `CallbackHandler` on the agent. Env vars are `LANGFUSE_SECRET_KEY`/`LANGFUSE_PUBLIC_KEY`/`LANGFUSE_BASE_URL` again.
+- Docura query timeout raised to 120s (a query makes two LLM calls); timeouts, connection errors, 401s, 5xx, and non-JSON bodies now fall back to the "no information" reply with a specific log line.
 
 #### Security
 - Traced function args are now recorded by parameter name instead of as a positional tuple, so `mask_pii` actually redacts credentials passed positionally (e.g. `login`'s password, `get_me`'s access token). `login`/`verify_passcode` no longer record their token return values, and `token`, `passcode_token`, `email`, and `phone_number` are redacted by key.
@@ -18,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Removed
 - `custodia-sdk` dependency (and its transitive `neurona-llm`) and `CUSTODIA_*` env vars.
+- Unused `RETRIEVAL_CANDIDATE_POOL` setting.
 
 ### 2026-10-01
 

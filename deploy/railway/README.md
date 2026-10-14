@@ -46,6 +46,10 @@ Railway project, so there is no private network between them) and `DOCURA_API_KE
 `API_KEY`. Both are in `docura/deploy/railway/.env` / `railway variable list --service
 docura-api --kv | grep RAILWAY_PUBLIC_DOMAIN`.
 
+The transaction tools need `ARIAPAY_PAYMENT_API_URL` (the payment service base, e.g.
+`https://api.ariapay.id/payment`). A service deployed before this variable existed must
+have it added, or transaction questions answer "couldn't fetch your transactions".
+
 Reads `.env` line by line, calls `railway variable set KEY=value --skip-deploys`
 for each (skipping comments, blank lines, and `APP_PORT` — that's only for local
 docker-compose's host port binding, Railway routes its own), then runs `railway up`

@@ -1,29 +1,42 @@
 # ariabot
 
-Minimal FastAPI + LangGraph agent service with Redis-backed semantic FAQ cache.
-
-Requires [Ollama](https://ollama.com) running locally with `nomic-embed-text` pulled (`ollama pull nomic-embed-text`).
+FastAPI + LangGraph tool-calling agent for Ariapay. It answers FAQ questions via
+Docura and, for signed-in users, account and transaction questions via the Ariapay
+API. See [`docs/API.md`](docs/API.md) for the HTTP API.
 
 ## Run
 
 ```bash
-cp .env.example .env
-docker compose up --build
-make seed   # populate dummy FAQ data
+cp .env.example .env   # fill in DEEPINFRA_*, ARIAPAY_*, DOCURA_*, LANGFUSE_*
+make up                # docker compose up --build -d
 ```
 
-App at `http://localhost:8000`. Endpoints: `GET /v1/health`, `POST /v1/chat` (`{"question": "..."}`).
-
-Redis GUI (redis-commander) at `http://localhost:8081`.
+App at `http://localhost:8000` (`APP_PORT`). Endpoints: `GET /v1/health`,
+`POST /v1/auth/login`, `POST /v1/chat`.
 
 ## Local dev (no docker)
 
 ```bash
 uv sync
-make redis  # redis-stack-server, needed for vector search
-uv run uvicorn app.main:app --reload
-make seed
+make dev   # uvicorn with reload on app/
 ```
+
+## Ariapay API
+
+Two base URLs, both without a trailing `/api/v1`:
+
+```bash
+ARIAPAY_API_URL=...           # auth and account (login, passcode, profile)
+ARIAPAY_PAYMENT_API_URL=...   # payment service, e.g. https://api.ariapay.id/payment
+```
+
+`list_transactions` and `get_spending_summary` read transactions, categories, and
+expenses from `ARIAPAY_PAYMENT_API_URL` (`app/services/ariapay_transactions_service.py`).
+That client only sends GET requests; anything else raises `AriapayReadOnlyViolation`.
+
+A plain-text `404 page not found` means the base URL or path is wrong and is reported
+to the user as a fetch failure. Only a JSON 404 with an `err_code` is treated as "not
+found" (e.g. an unknown category).
 
 ## Docura (FAQ and product docs)
 
@@ -56,6 +69,4 @@ LANGFUSE_BASE_URL=https://cloud.langfuse.com   # or https://jp.cloud.langfuse.co
 
 Credentials and PII (passwords, passcodes, tokens, email, phone numbers) are redacted by `app.tracing.mask_pii` before spans leave the process. Use the `app.tracing` decorators rather than a bare `@observe` so arguments are recorded by name and the mask can see them.
 
-## How the cache works
-
-FAQ questions are embedded (`nomic-embed-text`, 768-dim) and stored in a Redis vector index (`redis-stack`, HNSW/COSINE). Incoming questions are embedded and matched via KNN; a hit above `FAQ_MATCH_THRESHOLD` (default `0.85`) short-circuits generation. No exact-text match required — paraphrased questions still hit.
+The masked client is created when `app.tracing` is imported. Langfuse keeps the first client built per public key, so any module that calls `get_client()` or builds a `CallbackHandler` at import time must import `app.tracing` first, or its spans go out unmasked (`tests/test_tracing.py` checks this).
