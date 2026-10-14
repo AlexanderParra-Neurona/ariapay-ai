@@ -14,7 +14,7 @@ import uuid
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from langfuse import get_client, observe
+from langfuse import Langfuse, get_client, observe
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -69,6 +69,13 @@ def mask_pii(*, data: Any, **_: Any) -> Any:
     depth (e.g. the `format_account` tool output) via email/phone scrubbing.
     """
     return _scrub_text(redact(data))
+
+
+# Created here rather than in app.main: Langfuse keeps one client per public key
+# and the first one built wins, so any get_client()/CallbackHandler() that runs
+# during imports (e.g. agent.py's module-level handler) would otherwise lock in
+# an unmasked client. Every traced module imports this one first.
+Langfuse(mask=mask_pii)
 
 
 def _named_input(sig: inspect.Signature, args: tuple, kwargs: dict) -> Any:
