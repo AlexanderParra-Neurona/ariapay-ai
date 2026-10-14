@@ -21,12 +21,14 @@ COPY --from=builder --chown=app:app /app/.venv ./.venv
 COPY --from=builder --chown=app:app /app/app ./app
 COPY --chown=app:app .llm-provider ./.llm-provider
 
+ARG APP_PORT=8000
+ENV APP_PORT=${APP_PORT}
 ENV PATH="/app/.venv/bin:$PATH"
 USER app
 
-EXPOSE 8000
+EXPOSE ${APP_PORT}
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/v1/health')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${APP_PORT}/v1/health')" || exit 1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${APP_PORT}"]

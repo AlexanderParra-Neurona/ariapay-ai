@@ -22,11 +22,27 @@ HTTP_STATUS_OK = 200
 HTTP_STATUS_UNAUTHORIZED = 401
 HTTP_STATUS_BAD_GATEWAY = 502
 
+HTTP_STATUS_BAD_REQUEST = 400
+HTTP_STATUS_NOT_FOUND = 404
+
 ARIAPAY_PLATFORM_HEADERS = {"X-Platform": "android", "X-App-Version": "1.0.0"}
 
 ARIAPAY_ME_PATH = "/api/v1/users/me"
 ARIAPAY_LOGIN_PATH = "/api/v1/login"
 ARIAPAY_PASSCODE_VERIFY_PATH = "/api/v1/passcode/verify"
+
+ARIAPAY_TRANSACTION_CATEGORIES_PATH = "/api/v1/transaction-categories"
+ARIAPAY_TRANSACTIONS_PATH = "/api/v1/transactions"
+ARIAPAY_TRANSACTIONS_BY_CATEGORY_PATH = "/api/v1/transactions/categories/{category_id}"
+ARIAPAY_EXPENSES_PATH = "/api/v1/expenses"
+
+ARIAPAY_TRANSACTIONS_PAGE_SIZE_MAX = 100
+
+APP_TIMEZONE = "Asia/Jakarta"
+
+DOCURA_QUERY_PATH = "/v1/query"
+# a Docura query is an intent-classification LLM call plus an answer LLM call
+HTTP_TIMEOUT_DOCURA_SECONDS = 120
 
 # --- LLM ---
 
@@ -34,21 +50,22 @@ ARIAPAY_PASSCODE_VERIFY_PATH = "/api/v1/passcode/verify"
 class TraceName(str, Enum):
     AGENT_LOOP = "agent_loop"
     QUERY_CLASSIFIER = "query_classifier"
-    HYBRID_RETRIEVER_SEARCH = "hybrid_retriever_search"
-    SPARSE_RETRIEVER_SEARCH = "sparse_retriever_search"
-    RRF_FUSION = "rrf_fusion"
     LITELLM_EMBED = "litellm_embed"
-    QDRANT_UPSERT_DOCS = "qdrant_upsert_docs"
     QDRANT_UPSERT_TRANSACTIONS = "qdrant_upsert_transactions"
-    QDRANT_SIMILARITY_SEARCH = "qdrant_similarity_search"
     QDRANT_SIMILARITY_SEARCH_TRANSACTIONS = "qdrant_similarity_search_transactions"
     QDRANT_GET_ALL_TRANSACTIONS = "qdrant_get_all_transactions"
+    DOCURA_QUERY = "docura_query"
     ARIAPAY_GET_ME = "ariapay_get_me"
     ARIAPAY_LOGIN = "ariapay_login"
     ARIAPAY_VERIFY_PASSCODE = "ariapay_verify_passcode"
     TOOL_SEARCH_FAQ = "search_faq"
     TOOL_SEARCH_TRANSACTIONS = "search_transactions"
     TOOL_GET_ACCOUNT = "get_account"
+    ARIAPAY_LIST_TRANSACTION_CATEGORIES = "ariapay_list_transaction_categories"
+    ARIAPAY_LIST_TRANSACTIONS = "ariapay_list_transactions"
+    ARIAPAY_GET_EXPENSES = "ariapay_get_expenses"
+    TOOL_LIST_TRANSACTIONS = "list_transactions"
+    TOOL_GET_SPENDING_SUMMARY = "get_spending_summary"
 
 
 DEEPINFRA_OPENAI_BASE = "https://api.deepinfra.com/v1/openai"
@@ -72,6 +89,30 @@ class SpendingCategory(str, Enum):
     HEALTH_AND_WELLNESS = "health_and_wellness"
     ENTERTAINMENT = "entertainment"
     HOME_AND_GARDEN = "home_and_garden"
+
+
+class TransactionCategory(str, Enum):
+    """Mirrors the payments service's seeded transaction_categories names."""
+
+    FOOD_AND_BEVERAGE = "Food & Beverage"
+    GROCERIES = "Groceries"
+    TRANSPORTATION = "Transportation"
+    SHOPPING = "Shopping"
+    BILLS_AND_UTILITIES = "Bills & Utilities"
+    ENTERTAINMENT = "Entertainment"
+    HEALTH = "Health"
+    EDUCATION = "Education"
+    TRANSFER = "Transfer"
+    OTHER = "Other"
+
+
+class TransactionStatus(str, Enum):
+    PENDING = "PENDING"
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
+
+
+MSG_TRANSACTIONS_FETCH_FAILED = "Sorry, I couldn't fetch your transactions right now."
 
 
 # --- Qdrant / retrieval ---

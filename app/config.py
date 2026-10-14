@@ -20,6 +20,8 @@ class Settings(BaseSettings):
 
     API_URL: str = "changeme"
     ARIAPAY_API_URL: str = "changeme"
+    # transactions/categories live on the payment service, e.g. <host>/payment
+    ARIAPAY_PAYMENT_API_URL: str = "changeme"
 
     LOGIN_PHONE_NUMBER: str = "changeme"
     LOGIN_COUNTRY_CODE: str = "+62"
@@ -40,12 +42,15 @@ class Settings(BaseSettings):
     DEEPINFRA_EMBED_MODEL: str = "changeme"
     DEEPINFRA_EMBED_DIM: int = 4096
 
+    DOCURA_API_URL: str = "changeme"
+    # must equal API_KEY on the Docura API; unset only for a Docura without auth
+    DOCURA_API_KEY: str | None = None
+
     QDRANT_URL: str = "changeme"
     QDRANT_API_KEY: str | None = None
     QDRANT_COLLECTION: str = "changeme"
 
     RETRIEVAL_TOP_K: int = 5
-    RETRIEVAL_CANDIDATE_POOL: int = 20
     TRANSACTIONS_MAX_ALL: int = 200
 
     @property

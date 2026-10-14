@@ -47,7 +47,7 @@ async def get_me(access_token: str) -> dict:
     return resp.json()["user"]
 
 
-@trace_async(name=TraceName.ARIAPAY_LOGIN.value)
+@trace_async(name=TraceName.ARIAPAY_LOGIN.value, capture_output=False)
 async def login(phone_number: str, country_code: str, password: str) -> str:
     async with httpx.AsyncClient() as client:
         resp = await client.post(
@@ -69,7 +69,7 @@ async def login(phone_number: str, country_code: str, password: str) -> str:
     return resp.json()["user"]["passcode_token"]
 
 
-@trace_async(name=TraceName.ARIAPAY_VERIFY_PASSCODE.value)
+@trace_async(name=TraceName.ARIAPAY_VERIFY_PASSCODE.value, capture_output=False)
 async def verify_passcode(token: str, passcode: str) -> dict:
     async with httpx.AsyncClient() as client:
         resp = await client.post(
