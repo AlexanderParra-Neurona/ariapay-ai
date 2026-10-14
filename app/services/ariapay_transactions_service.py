@@ -53,18 +53,24 @@ async def _reject_non_get(request: httpx.Request) -> None:
         )
 
 
-def _error_message(resp: httpx.Response) -> str:
+def _error_body(resp: httpx.Response) -> dict | None:
     try:
-        return resp.json().get("error_message") or resp.text
+        body = resp.json()
     except ValueError:
-        return resp.text
+        return None
+    return body if isinstance(body, dict) and "err_code" in body else None
+
+
+def _error_message(resp: httpx.Response) -> str:
+    body = _error_body(resp)
+    return (body or {}).get("error_message") or resp.text
 
 
 async def _get(path: str, access_token: str, params: dict | None = None) -> dict:
     query = {k: v for k, v in (params or {}).items() if v is not None}
     async with httpx.AsyncClient(event_hooks={"request": [_reject_non_get]}) as client:
         resp = await client.get(
-            f"{settings.ARIAPAY_API_URL}{path}",
+            f"{settings.ARIAPAY_PAYMENT_API_URL}{path}",
             params=query,
             headers={
                 **ARIAPAY_PLATFORM_HEADERS,
@@ -79,6 +85,11 @@ async def _get(path: str, access_token: str, params: dict | None = None) -> dict
     if resp.status_code == HTTP_STATUS_BAD_REQUEST:
         raise AriapayBadRequestError(_error_message(resp))
     if resp.status_code == HTTP_STATUS_NOT_FOUND:
+        if _error_body(resp) is None:
+            # router-level "404 page not found": wrong base URL or path, not an
+            # empty result, so surface it as a fetch failure
+            logger.error("GET %s: route not found on Ariapay API", path)
+            raise AriapayAPIError(f"Ariapay route not found: {path}")
         raise AriapayNotFoundError(_error_message(resp))
     if resp.status_code != HTTP_STATUS_OK:
         logger.error("GET %s: Ariapay API returned %s", path, resp.status_code)
@@ -141,4 +152,4 @@ async def get_expenses(
         access_token,
         params={"month": month, "date_from": date_from, "date_to": date_to},
     )
-    return data["expenses"]
+    return data["categories"]

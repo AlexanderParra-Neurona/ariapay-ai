@@ -51,7 +51,7 @@ bash deploy/vm_bootstrap.sh   # installs Docker if missing (likely already prese
 
 ```bash
 cp .env.example .env
-$EDITOR .env   # fill in real DEEPINFRA_API_TOKEN, QDRANT_URL/API_KEY, ARIAPAY_API_URL,
+$EDITOR .env   # fill in real DEEPINFRA_API_TOKEN, QDRANT_URL/API_KEY, ARIAPAY_API_URL, ARIAPAY_PAYMENT_API_URL,
                # LOGIN_*, etc. STAGING_DOMAIN isn't read by the app — only needed below for nginx.
 ```
 

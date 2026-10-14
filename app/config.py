@@ -20,6 +20,8 @@ class Settings(BaseSettings):
 
     API_URL: str = "changeme"
     ARIAPAY_API_URL: str = "changeme"
+    # transactions/categories live on the payment service, e.g. <host>/payment
+    ARIAPAY_PAYMENT_API_URL: str = "changeme"
 
     LOGIN_PHONE_NUMBER: str = "changeme"
     LOGIN_COUNTRY_CODE: str = "+62"

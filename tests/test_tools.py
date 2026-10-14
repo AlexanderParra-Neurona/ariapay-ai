@@ -3,13 +3,15 @@ import asyncio
 import httpx
 import pytest
 
-from app.services import docura_service
+from app.services import ariapay_transactions_service, docura_service
 from app.services.ariapay_service import AriapayAPIError, AriapayAuthError
 from app.services.ariapay_transactions_service import (
+    AriapayNotFoundError,
     AriapayReadOnlyViolation,
     _reject_non_get,
 )
 from app.services.docura_service import DocuraAPIError
+from app.services.formatting import format_transaction_page
 from app.tools import get_tools
 from app.tools.get_account import build_get_account_tool
 from app.tools.get_spending_summary import build_get_spending_summary_tool
@@ -197,6 +199,73 @@ def test_transactions_client_allows_get() -> None:
     asyncio.run(_reject_non_get(request))
 
 
+def _patch_ariapay_transport(monkeypatch, handler) -> None:
+    """Route ariapay_transactions_service's httpx.AsyncClient through a MockTransport."""
+    real_client = httpx.AsyncClient
+    monkeypatch.setattr(
+        ariapay_transactions_service.httpx,
+        "AsyncClient",
+        lambda **kwargs: real_client(transport=httpx.MockTransport(handler), **kwargs),
+    )
+    monkeypatch.setattr(
+        ariapay_transactions_service.settings,
+        "ARIAPAY_PAYMENT_API_URL",
+        "https://ariapay.test/payment",
+    )
+
+
+def test_list_transactions_uses_payment_api_url(monkeypatch) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/payment/api/v1/transactions"
+        return httpx.Response(200, json={"transactions": []})
+
+    _patch_ariapay_transport(monkeypatch, handler)
+    asyncio.run(ariapay_transactions_service.list_transactions("tok-123"))
+
+
+def test_list_transactions_router_404_raises_api_error(monkeypatch) -> None:
+    _patch_ariapay_transport(
+        monkeypatch, lambda request: httpx.Response(404, text="404 page not found")
+    )
+    with pytest.raises(AriapayAPIError) as exc_info:
+        asyncio.run(ariapay_transactions_service.list_transactions("tok-123"))
+    assert not isinstance(exc_info.value, AriapayNotFoundError)
+
+
+def test_list_transactions_json_404_raises_not_found(monkeypatch) -> None:
+    _patch_ariapay_transport(
+        monkeypatch,
+        lambda request: httpx.Response(
+            404, json={"err_code": "EC0404", "error_message": "category not found"}
+        ),
+    )
+    with pytest.raises(AriapayNotFoundError, match="category not found"):
+        asyncio.run(ariapay_transactions_service.list_transactions("tok-123"))
+
+
+def test_list_transactions_tool_router_404_reports_fetch_failure(monkeypatch) -> None:
+    _patch_ariapay_transport(
+        monkeypatch, lambda request: httpx.Response(404, text="404 page not found")
+    )
+    output = asyncio.run(build_list_transactions_tool().ainvoke({}, config=_CONFIG))
+    assert output == "Sorry, I couldn't fetch your transactions right now."
+
+
+def test_get_expenses_reads_categories(monkeypatch) -> None:
+    categories = [{"category_id": 1, "category_name": "Food & Beverage", "total": "1"}]
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/payment/api/v1/expenses"
+        assert request.url.params["month"] == "2026-10"
+        return httpx.Response(200, json={"categories": categories})
+
+    _patch_ariapay_transport(monkeypatch, handler)
+    result = asyncio.run(
+        ariapay_transactions_service.get_expenses("tok-123", month="2026-10")
+    )
+    assert result == categories
+
+
 def test_list_transactions_tool_formats_page(monkeypatch) -> None:
     async def fake_resolve(access_token: str, name: str) -> int:
         assert name == "Food & Beverage"
@@ -242,6 +311,40 @@ def test_list_transactions_tool_formats_page(monkeypatch) -> None:
     assert "WARUNG BU SITI - Rp50,000 - Food & Beverage - SUCCESS" in output
 
 
+def test_format_transaction_page_names_largest_successful_item() -> None:
+    def item(merchant: str, amount: str, status: str = "SUCCESS") -> dict:
+        return {"merchant_name": merchant, "amount": amount, "status": status}
+
+    output = format_transaction_page(
+        {
+            "transactions": [
+                {
+                    "date": "2026-10-12",
+                    "total": "10069",
+                    "items": [item("LYNKID", "10069")],
+                },
+                {
+                    "date": "2026-10-08",
+                    "total": "43258",
+                    "items": [item("PT Tokopedia", "43258")],
+                },
+                {
+                    "date": "2026-10-07",
+                    "total": "92000",
+                    "items": [
+                        item("JESSILINE IMANUELA", "50000"),
+                        item("WARUNG MBAK YULI", "22000"),
+                        item("FAILED MERCHANT", "900000", status="FAILED"),
+                    ],
+                },
+            ]
+        }
+    )
+    assert output.endswith(
+        "Largest successful transaction shown: JESSILINE IMANUELA - Rp50,000 on 2026-10-07"
+    )
+
+
 def test_list_transactions_tool_empty(monkeypatch) -> None:
     async def fake_fetch(access_token: str, **kwargs) -> dict:
         return {"transactions": [], "pagination": {"total_items": 0}}
@@ -263,24 +366,20 @@ def test_list_transactions_tool_session_expired(monkeypatch) -> None:
 def test_get_spending_summary_tool_formats_expenses(monkeypatch) -> None:
     async def fake_get_expenses(access_token: str, **kwargs) -> list[dict]:
         assert kwargs["month"] == "2026-10"
+        period = {"from": "2026-10-01", "to": "2026-10-31"}
         return [
             {
-                "period": {"from": "2026-10-01", "to": "2026-10-31"},
-                "categories": [
-                    {
-                        "category_id": 1,
-                        "category_name": "Food & Beverage",
-                        "total": "50000",
-                        "transaction_count": 1,
-                    },
-                    {
-                        "category_id": 3,
-                        "category_name": "Transportation",
-                        "total": "18000",
-                        "transaction_count": 1,
-                    },
-                ],
-            }
+                "category_id": 1,
+                "category_name": "Food & Beverage",
+                "period": period,
+                "total": "50000",
+            },
+            {
+                "category_id": 3,
+                "category_name": "Transportation",
+                "period": period,
+                "total": "18000",
+            },
         ]
 
     monkeypatch.setattr(
@@ -290,7 +389,8 @@ def test_get_spending_summary_tool_formats_expenses(monkeypatch) -> None:
         build_get_spending_summary_tool().ainvoke({"month": "2026-10"}, config=_CONFIG)
     )
     assert "Rp68,000 total" in output
-    assert "Food & Beverage: Rp50,000 across 1 transaction(s)" in output
+    assert "Spending from 2026-10-01 to 2026-10-31" in output
+    assert "- Food & Beverage: Rp50,000" in output
 
 
 def test_get_spending_summary_rejects_month_and_range() -> None:

@@ -34,8 +34,9 @@ _DESCRIPTION = (
     "List the signed-in user's own transactions (QRIS payments), grouped by "
     "day, optionally filtered by category, status, or period. Use for 'show my "
     "recent transactions', 'what did I buy last week', or 'which payments "
-    "failed'. For totals or 'how much did I spend' questions, use "
-    "get_spending_summary instead."
+    "failed'. For 'biggest/largest transaction' questions, use limit 100 and "
+    "answer from the 'Largest successful transaction shown' note. For totals "
+    "or 'how much did I spend' questions, use get_spending_summary instead."
 )
 _DEFAULT_LIMIT = 20
 

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from langchain_core.documents import Document
 
-from app.constants import CURRENCY_PREFIX, TIMESTAMP_DISPLAY_FORMAT
+from app.constants import CURRENCY_PREFIX, TIMESTAMP_DISPLAY_FORMAT, TransactionStatus
 
 
 def format_timestamp(timestamp: str) -> str:
@@ -51,6 +51,27 @@ def format_amount(amount: str) -> str:
         return f"{CURRENCY_PREFIX}{amount}"
 
 
+def _amount_value(amount: str) -> float | None:
+    try:
+        return float(amount)
+    except (TypeError, ValueError):
+        return None
+
+
+def _largest_success(days: list[dict]) -> tuple[str, dict] | None:
+    # the chat model can't be trusted to compare amounts, so pick it here
+    candidates = [
+        (day["date"], t)
+        for day in days
+        for t in day.get("items") or []
+        if t.get("status") == TransactionStatus.SUCCESS.value
+        and _amount_value(t.get("amount")) is not None
+    ]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda c: _amount_value(c[1]["amount"]))
+
+
 def format_transaction_page(data: dict) -> str:
     days = data.get("transactions") or []
     lines = []
@@ -71,26 +92,33 @@ def format_transaction_page(data: dict) -> str:
     total = (data.get("pagination") or {}).get("total_items", shown)
     if total > shown:
         lines.append(f"\nShowing {shown} of {total} matching transactions.")
+
+    largest = _largest_success(days)
+    if largest:
+        date, t = largest
+        lines.append(
+            f"\n[Mention only if the user asks for their biggest/largest "
+            f"transaction] Largest successful transaction shown: "
+            f"{t.get('merchant_name', 'Unknown')} - "
+            f"{format_amount(t['amount'])} on {date}"
+        )
     return "\n".join(lines)
 
 
-def format_expenses(expenses: list[dict]) -> str:
-    blocks = []
-    for period in expenses:
-        categories = period.get("categories") or []
-        if not categories:
-            continue
-        p = period.get("period") or {}
-        grand_total = sum(float(c.get("total", 0)) for c in categories)
-        lines = [
+def format_expenses(categories: list[dict]) -> str:
+    if not categories:
+        return ""
+    # every row carries the same queried period
+    p = categories[0].get("period") or {}
+    grand_total = sum(float(c.get("total", 0)) for c in categories)
+    lines = [
+        (
             f"Spending from {p.get('from')} to {p.get('to')}: "
             f"{CURRENCY_PREFIX}{grand_total:,.0f} total"
-        ]
-        lines.extend(
-            f"- {c.get('category_name', 'Unknown')}: "
-            f"{format_amount(c.get('total', '0'))} across "
-            f"{c.get('transaction_count', 0)} transaction(s)"
-            for c in categories
         )
-        blocks.append("\n".join(lines))
-    return "\n\n".join(blocks)
+    ]
+    lines.extend(
+        f"- {c.get('category_name', 'Unknown')}: {format_amount(c.get('total', '0'))}"
+        for c in categories
+    )
+    return "\n".join(lines)

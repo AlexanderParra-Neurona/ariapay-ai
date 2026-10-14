@@ -34,7 +34,7 @@ ARIAPAY_PASSCODE_VERIFY_PATH = "/api/v1/passcode/verify"
 ARIAPAY_TRANSACTION_CATEGORIES_PATH = "/api/v1/transaction-categories"
 ARIAPAY_TRANSACTIONS_PATH = "/api/v1/transactions"
 ARIAPAY_TRANSACTIONS_BY_CATEGORY_PATH = "/api/v1/transactions/categories/{category_id}"
-ARIAPAY_EXPENSES_PATH = "/api/v1/transactions/categories/expenses"
+ARIAPAY_EXPENSES_PATH = "/api/v1/expenses"
 
 ARIAPAY_TRANSACTIONS_PAGE_SIZE_MAX = 100
 
